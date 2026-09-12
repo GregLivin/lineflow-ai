@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import LiveClock from '../components/LiveClock';
 
 const roles = [
   {
@@ -21,35 +22,42 @@ const roles = [
 
 export default function Home() {
   return (
-    <main className="shell">
-      <section className="hero">
-        <div className="brandRow">
-          <div className="logoMark">LF</div>
-          <div>
-            <p className="eyebrow">Production Material Flow</p>
-            <h1>LineFlow AI</h1>
+    <main className="shell homeShell">
+      <section className="hero operationsHero">
+        <div className="heroTopRow">
+          <div className="brandRow">
+            <div className="logoMark">LF</div>
+            <div>
+              <p className="eyebrow">Production Operations System</p>
+              <h1>LineFlow AI</h1>
+            </div>
           </div>
+
+          <LiveClock />
         </div>
 
-        <p className="heroCopy">
-          Real-time material requests, routing, delivery tracking, inventory visibility, and production planning in one installable app.
+        <div className="operationsStatusRow">
+          <div className="statusStrip">
+            <span className="statusDot" />
+            <span>Production System Online</span>
+          </div>
+          <span className="systemMeta">Live material flow · inventory · planning · delivery tracking</span>
+        </div>
+
+        <p className="heroCopy compactHeroCopy">
+          One live system for material requests, production planning, inventory visibility, and delivery execution across all four assembly lines.
         </p>
 
-        <div className="statusStrip">
-          <span className="statusDot" />
-          <span>Designed for phone, tablet, and desktop</span>
-        </div>
-
-        <div className="actions">
-          <Link className="primaryButton linkButton" href="/login">Request Material</Link>
-          <Link className="secondaryButton linkButton" href="/login">Open Dashboard</Link>
+        <div className="actions homeActions">
+          <Link className="primaryButton linkButton" href="/login">Sign In</Link>
+          <Link className="secondaryButton linkButton" href="/login">Request Material</Link>
         </div>
       </section>
 
-      <section className="sectionBlock">
+      <section className="sectionBlock homeOverview">
         <div className="sectionHeading">
           <div>
-            <p className="eyebrow">Role-based workflow</p>
+            <p className="eyebrow">Live Operations</p>
             <h2>One system. Different views.</h2>
           </div>
         </div>
@@ -65,21 +73,11 @@ export default function Home() {
       </section>
 
       <section className="sectionBlock flowBlock">
-        <p className="eyebrow">Core request flow</p>
+        <p className="eyebrow">Core Request Flow</p>
         <h2>Requested → Accepted → Picked Up → In Transit → Delivered → Confirmed</h2>
         <p>
-          Each request is routed to the material handler responsible for that material while Debbie, Tammy, and Chance maintain full operational visibility and control.
+          Requests route to the correct material handler while Debbie, Tammy, and Chance maintain full operational visibility and control.
         </p>
-      </section>
-
-      <section className="installCard">
-        <div>
-          <p className="eyebrow">Installable PWA</p>
-          <h2>Add LineFlow AI to any supported device</h2>
-          <p>
-            The application is structured as a Progressive Web App so it can be installed from a browser and launched from a home screen or desktop like an app.
-          </p>
-        </div>
       </section>
     </main>
   );
