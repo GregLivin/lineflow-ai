@@ -2,6 +2,12 @@
 
 LineFlow AI is a material ordering, delivery, inventory, and production-flow system for four assembly lines.
 
+## Live Demo
+
+**https://lineflow-ai.vercel.app**
+
+The demo is publicly shareable and automatically reflects production deployments from the connected project.
+
 ## How It Works
 
 1. Assembly-line users log in and order material.
