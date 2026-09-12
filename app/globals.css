@@ -137,7 +137,8 @@ h3 {
 .authCopy,
 .dashboardRole,
 .metricCard p,
-.demoNote {
+.demoNote,
+.scheduleFootnote {
   color: var(--muted);
   line-height: 1.65;
 }
@@ -324,6 +325,110 @@ h3 {
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.13), rgba(34, 197, 94, 0.08));
 }
 
+.scheduleSection {
+  padding: 22px 22px 18px;
+}
+
+.scheduleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.scheduleHeader h2 {
+  margin-bottom: 6px;
+}
+
+.scheduleActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.scheduleTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #0b1728;
+}
+
+.scheduleTable {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+}
+
+.scheduleTable th,
+.scheduleTable td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  border-right: 1px solid rgba(148, 163, 184, 0.08);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.scheduleTable th {
+  background: #12243b;
+  color: #c7eafe;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.scheduleTable tr:last-child td {
+  border-bottom: 0;
+}
+
+.scheduleTable tbody tr:hover {
+  background: rgba(56, 189, 248, 0.035);
+}
+
+.scheduleStatus {
+  display: inline-flex;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  color: #d7f1ff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.scheduleInput {
+  width: 100%;
+  min-width: 90px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: #071321;
+  color: var(--text);
+  padding: 8px 9px;
+  outline: none;
+}
+
+.scheduleInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.12);
+}
+
+.removeRowButton {
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.08);
+  color: #fecaca;
+  border-radius: 9px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.scheduleFootnote {
+  margin: 12px 0 0;
+  font-size: 0.82rem;
+}
+
 .authShell {
   min-height: 100vh;
   display: grid;
@@ -401,7 +506,8 @@ h3 {
 }
 
 @media (max-width: 760px) {
-  .heroTopRow {
+  .heroTopRow,
+  .scheduleHeader {
     flex-direction: column;
   }
 
@@ -439,13 +545,16 @@ h3 {
     grid-template-columns: 1fr;
   }
 
-  .actions {
+  .actions,
+  .scheduleActions {
     flex-direction: column;
+    width: 100%;
   }
 
   .primaryButton,
   .secondaryButton,
-  .linkButton {
+  .linkButton,
+  .scheduleActions button {
     width: 100%;
   }
 
