@@ -38,6 +38,10 @@ input {
   padding: 28px 0 56px;
 }
 
+.homeShell {
+  padding-top: 22px;
+}
+
 .hero,
 .sectionBlock,
 .installCard,
@@ -51,6 +55,30 @@ input {
 
 .hero {
   padding: 30px;
+}
+
+.operationsHero {
+  overflow: hidden;
+  position: relative;
+}
+
+.operationsHero::after {
+  content: "";
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  right: -150px;
+  top: -170px;
+  background: rgba(56, 189, 248, 0.08);
+  pointer-events: none;
+}
+
+.heroTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 28px;
 }
 
 .brandRow {
@@ -120,6 +148,64 @@ h3 {
   margin: 24px 0;
 }
 
+.compactHeroCopy {
+  max-width: 830px;
+  margin-bottom: 12px;
+}
+
+.liveClock {
+  min-width: 280px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: rgba(4, 18, 29, 0.62);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  text-align: right;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  position: relative;
+  z-index: 1;
+}
+
+.clockLabel,
+.clockDate,
+.clockZone {
+  display: block;
+}
+
+.clockLabel {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.68rem;
+  font-weight: 800;
+  margin-bottom: 7px;
+}
+
+.clockDate {
+  color: #dbeafe;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.clockTime {
+  display: block;
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
+  letter-spacing: -0.04em;
+  margin: 3px 0;
+}
+
+.clockZone {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.operationsStatusRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  margin-top: 30px;
+}
+
 .statusStrip {
   display: inline-flex;
   align-items: center;
@@ -140,11 +226,20 @@ h3 {
   box-shadow: 0 0 18px rgba(34, 197, 94, 0.9);
 }
 
+.systemMeta {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 26px;
+}
+
+.homeActions {
+  margin-top: 22px;
 }
 
 .primaryButton,
@@ -179,6 +274,10 @@ h3 {
 .installCard {
   margin-top: 18px;
   padding: 26px;
+}
+
+.homeOverview {
+  background: linear-gradient(180deg, rgba(15, 27, 45, 0.9), rgba(11, 20, 34, 0.96));
 }
 
 .roleGrid,
@@ -299,6 +398,18 @@ h3 {
 
 .dashboardGrid {
   margin-top: 18px;
+}
+
+@media (max-width: 760px) {
+  .heroTopRow {
+    flex-direction: column;
+  }
+
+  .liveClock {
+    width: 100%;
+    text-align: left;
+    min-width: 0;
+  }
 }
 
 @media (max-width: 680px) {
