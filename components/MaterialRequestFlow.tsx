@@ -15,11 +15,13 @@ function elapsed(from:string,to?:string|null){ const end=to?new Date(to).getTime
 export default function MaterialRequestFlow({user}:{user:DemoUser}){
   const [requests,setRequests]=useState<MaterialRequest[]>([]);
   const [availableModels,setAvailableModels]=useState(starterModels);
+  const [availableParts,setAvailableParts]=useState<ModelPart[]>([]);
   const [loading,setLoading]=useState(true);
   const [submitting,setSubmitting]=useState(false);
   const [message,setMessage]=useState('');
   const [materialType,setMaterialType]=useState<'Boom'|'Hood'>('Boom');
   const [model,setModel]=useState('1500SJ');
+  const [selectedPart,setSelectedPart]=useState('ALL');
   const [priority,setPriority]=useState<'Normal'|'Urgent'>('Normal');
   const [notes,setNotes]=useState('');
 
@@ -34,33 +36,59 @@ export default function MaterialRequestFlow({user}:{user:DemoUser}){
     const next=Array.from(new Set([...starterModels,...configured])).sort();
     setAvailableModels(next); if(!next.includes(model)) setModel(next[0]??'1200SJP');
   }
+
+  async function loadParts(nextModel:string=model, nextType:'Boom'|'Hood'=materialType){
+    const {data}=await supabase.from('model_parts').select('model, material_type, part_name, part_number, quantity, location').eq('model',nextModel).eq('material_type',nextType).eq('active',true).order('part_name');
+    setAvailableParts((data??[]) as ModelPart[]);
+    setSelectedPart('ALL');
+  }
+
   async function loadRequests(show=false){
     if(show)setLoading(true);
     let q=supabase.from('material_requests').select('*, request_parts(*)').order('requested_at',{ascending:false}).limit(100);
     if(lineName)q=q.eq('assembly_line',lineName); if(handler)q=q.eq('assigned_handler',handler);
     const {data,error}=await q; if(error)setMessage('Unable to load material requests.'); else setRequests((data??[]) as MaterialRequest[]); setLoading(false);
   }
+
   useEffect(()=>{
-    loadRequests(true); loadModels();
+    loadRequests(true); loadModels(); loadParts();
     const a=supabase.channel(`requests-${user.username}`).on('postgres_changes',{event:'*',schema:'public',table:'material_requests'},()=>loadRequests()).subscribe();
     const b=supabase.channel(`parts-${user.username}`).on('postgres_changes',{event:'*',schema:'public',table:'request_parts'},()=>loadRequests()).subscribe();
-    const c=supabase.channel(`models-${user.username}`).on('postgres_changes',{event:'*',schema:'public',table:'model_parts'},()=>loadModels()).subscribe();
+    const c=supabase.channel(`models-${user.username}`).on('postgres_changes',{event:'*',schema:'public',table:'model_parts'},()=>{loadModels();loadParts()}).subscribe();
     const timer=window.setInterval(()=>setRequests(v=>[...v]),1000);
     return()=>{window.clearInterval(timer);supabase.removeChannel(a);supabase.removeChannel(b);supabase.removeChannel(c)};
   },[user.username]);
-  async function chooseMaterialType(t:'Boom'|'Hood'){setMaterialType(t);await loadModels(t)}
+
+  async function chooseMaterialType(t:'Boom'|'Hood'){
+    setMaterialType(t);
+    await loadModels(t);
+    await loadParts(model,t);
+  }
+
+  async function chooseModel(nextModel:string){
+    setModel(nextModel);
+    await loadParts(nextModel,materialType);
+  }
 
   async function submitRequest(e:FormEvent){
     e.preventDefault(); if(!lineName)return; setSubmitting(true);setMessage('');
     const assignedHandler=materialType==='Boom'?'greg':'tristen';
-    const {data:created,error}=await supabase.from('material_requests').insert({assembly_line:lineName,material_type:materialType,material_name:`${model} ${materialType} Material`,model,part_number:null,quantity:1,priority,assigned_handler:assignedHandler,status:'Requested',notes:notes.trim()||null}).select('id').single();
+    const chosenPart=selectedPart==='ALL'?null:availableParts.find(p=>p.part_name===selectedPart)??null;
+    const requestLabel=chosenPart?`${model} · ${chosenPart.part_name}`:`${model} ${materialType} Material`;
+    const {data:created,error}=await supabase.from('material_requests').insert({assembly_line:lineName,material_type:materialType,material_name:requestLabel,model,part_number:chosenPart?.part_number??null,quantity:1,priority,assigned_handler:assignedHandler,status:'Requested',notes:notes.trim()||null}).select('id').single();
     if(error||!created){setMessage('Request could not be sent. Please try again.');setSubmitting(false);return}
-    const {data:modelParts,error:partsError}=await supabase.from('model_parts').select('model, material_type, part_name, part_number, quantity, location').eq('model',model).eq('material_type',materialType).eq('active',true).order('part_name');
-    if(!partsError&&modelParts?.length){
-      await supabase.from('request_parts').insert((modelParts as ModelPart[]).map(p=>({request_id:created.id,part_name:p.part_name,part_number:p.part_number,quantity:p.quantity,location:p.location})));
+
+    const partsToRequest=chosenPart?[chosenPart]:availableParts;
+    if(partsToRequest.length){
+      await supabase.from('request_parts').insert(partsToRequest.map(p=>({request_id:created.id,part_name:p.part_name,part_number:p.part_number,quantity:p.quantity,location:p.location})));
     }
-    setMessage(modelParts?.length?`${model} request sent to ${assignedHandler==='greg'?'Greg':'Tristen'} with ${modelParts.length} required part types.`:`${model} request sent. Its parts list still needs to be configured in LineFlow.`);
-    setPriority('Normal');setNotes('');await loadRequests();setSubmitting(false);
+
+    setMessage(chosenPart
+      ? `${chosenPart.part_name} for ${model} sent to ${assignedHandler==='greg'?'Greg':'Tristen'}.`
+      : partsToRequest.length
+        ? `${model} request sent to ${assignedHandler==='greg'?'Greg':'Tristen'} with ${partsToRequest.length} required part types.`
+        : `${model} request sent. Its parts list still needs to be configured in LineFlow.`);
+    setPriority('Normal');setNotes('');setSelectedPart('ALL');await loadRequests();setSubmitting(false);
   }
 
   async function updateStatus(r:MaterialRequest,status:MaterialRequest['status']){
@@ -68,6 +96,7 @@ export default function MaterialRequestFlow({user}:{user:DemoUser}){
     if(status==='Accepted')changes.accepted_at=now;if(status==='Picked Up')changes.picked_up_at=now;if(status==='In Transit')changes.in_transit_at=now;if(status==='Delivered')changes.delivered_at=now;if(status==='Confirmed')changes.confirmed_at=now;
     const {error}=await supabase.from('material_requests').update(changes).eq('id',r.id); if(error)setMessage('Status could not be updated.');else await loadRequests();
   }
+
   async function togglePartDelivered(part:RequestPart){
     const delivered=!part.delivered; const {error}=await supabase.from('request_parts').update({delivered,delivered_at:delivered?new Date().toISOString():null,delivered_by:delivered?user.username:null}).eq('id',part.id);
     if(error)setMessage('Part delivery could not be updated.');else await loadRequests();
@@ -81,7 +110,7 @@ export default function MaterialRequestFlow({user}:{user:DemoUser}){
     const canHandle=(isGreg&&r.assigned_handler==='greg')||(isTristen&&r.assigned_handler==='tristen');
     const canConfirm=isLine&&r.assembly_line===lineName&&r.status==='Delivered'; const parts=r.request_parts??[]; const deliveredCount=parts.filter(p=>p.delivered).length; const allPartsDelivered=parts.length===0||deliveredCount===parts.length;
     return <article className={`requestCard ${r.priority==='Urgent'?'urgentRequest':''}`} key={r.id}>
-      <div className="requestCardTop"><div><span className="requestLine">{r.assembly_line}</span><h3>{r.model||r.material_name}</h3></div><span className={`priorityBadge ${r.priority==='Urgent'?'priorityUrgent':''}`}>{r.priority}</span></div>
+      <div className="requestCardTop"><div><span className="requestLine">{r.assembly_line}</span><h3>{r.material_name}</h3></div><span className={`priorityBadge ${r.priority==='Urgent'?'priorityUrgent':''}`}>{r.priority}</span></div>
       <div className="requestMetaGrid"><div><span>Model</span><strong>{r.model||'—'}</strong></div><div><span>Handler</span><strong>{r.assigned_handler==='greg'?'Greg':'Tristen'}</strong></div><div><span>Status</span><strong>{r.status}</strong></div></div>
       {parts.length>0?<div className="requestPartsList"><div className="requestPartsHeader"><strong>Required Parts</strong><span>{deliveredCount}/{parts.length} part types delivered</span></div>{parts.map(p=><label className={`requestPartRow ${p.delivered?'requestPartDelivered':''}`} key={p.id}><input type="checkbox" checked={p.delivered} readOnly={!canHandle} onChange={()=>canHandle&&togglePartDelivered(p)}/><span className="requestPartInfo"><strong>{p.part_name}</strong><small>Part #{p.part_number||'Not set'} · Qty {p.quantity} · {p.location||'Location not set'}</small></span></label>)}</div>:<p className="requestNotes">Parts list for this model has not been configured yet.</p>}
       {r.notes&&<p className="requestNotes">{r.notes}</p>}<div className="requestTiming"><span>Requested {timeLabel(r.requested_at)}</span><span>Elapsed {elapsed(r.requested_at,r.confirmed_at||r.delivered_at)}</span></div>
@@ -94,13 +123,17 @@ export default function MaterialRequestFlow({user}:{user:DemoUser}){
   }
 
   return <section className="sectionBlock requestFlowSection">
-    <div className="requestFlowHeader"><div><p className="eyebrow">Live Material Flow</p><h2>{isLine?'Request Material by Model':isGreg?'Boom Request Queue':isTristen?'Hood Request Queue':'Material Request Control Board'}</h2><p className="dashboardRole">Line users select the model. LineFlow sends the required individual parts, quantities, part numbers, and locations to the material handler.</p></div><div className="liveRequestIndicator"><span className="statusDot"/> Realtime Connected</div></div>
+    <div className="requestFlowHeader"><div><p className="eyebrow">Live Material Flow</p><h2>{isLine?'Request Material by Model':isGreg?'Boom Request Queue':isTristen?'Hood Request Queue':'Material Request Control Board'}</h2><p className="dashboardRole">Request the complete model set or choose one individual part. LineFlow sends the part number, quantity, and location to the material handler.</p></div><div className="liveRequestIndicator"><span className="statusDot"/> Realtime Connected</div></div>
     {message&&<p className="requestMessage">{message}</p>}
     {isLine&&<form className="requestForm" onSubmit={submitRequest}>
       <div className="requestTypeButtons"><button type="button" className={materialType==='Boom'?'typeButton activeTypeButton':'typeButton'} onClick={()=>chooseMaterialType('Boom')}>Boom</button><button type="button" className={materialType==='Hood'?'typeButton activeTypeButton':'typeButton'} onClick={()=>chooseMaterialType('Hood')}>Hood</button></div>
-      <div className="requestFormGrid"><label>Model<select value={model} onChange={e=>setModel(e.target.value)}>{availableModels.map(x=><option key={x}>{x}</option>)}</select></label><label>Priority<select value={priority} onChange={e=>setPriority(e.target.value as 'Normal'|'Urgent')}><option>Normal</option><option>Urgent</option></select></label></div>
+      <div className="requestFormGrid">
+        <label>Model<select value={model} onChange={e=>chooseModel(e.target.value)}>{availableModels.map(x=><option key={x}>{x}</option>)}</select></label>
+        <label>Individual Part<select value={selectedPart} onChange={e=>setSelectedPart(e.target.value)}><option value="ALL">All Required Parts</option>{availableParts.map(p=><option key={`${p.part_name}-${p.part_number||''}`} value={p.part_name}>{p.part_name}{p.part_number?` · #${p.part_number}`:''}</option>)}</select></label>
+        <label>Priority<select value={priority} onChange={e=>setPriority(e.target.value as 'Normal'|'Urgent')}><option>Normal</option><option>Urgent</option></select></label>
+      </div>
       <label className="notesLabel">Notes<textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Optional production note or special instruction"/></label>
-      <div className="requestSubmitRow"><div><span>Destination</span><strong>{lineName}</strong></div><div><span>Routes To</span><strong>{materialType==='Boom'?'Greg · Combi Lift':'Tristen · Forklift'}</strong></div><button className="primaryButton" disabled={submitting}>{submitting?'Sending...':`Request ${model}`}</button></div>
+      <div className="requestSubmitRow"><div><span>Destination</span><strong>{lineName}</strong></div><div><span>Routes To</span><strong>{materialType==='Boom'?'Greg · Combi Lift':'Tristen · Forklift'}</strong></div><button className="primaryButton" disabled={submitting}>{submitting?'Sending...':selectedPart==='ALL'?`Request ${model}`:`Request ${selectedPart}`}</button></div>
     </form>}
     {loading?<p className="dashboardRole">Loading live requests...</p>:<>{(isGreg||isTristen)&&<div className="requestColumns"><div><h3 className="queueTitle">Needs Action <span>{newRequests.length}</span></h3>{newRequests.length?newRequests.map(requestCard):<p className="emptyQueue">No new requests.</p>}</div><div><h3 className="queueTitle">Active <span>{activeRequests.length}</span></h3>{activeRequests.length?activeRequests.map(requestCard):<p className="emptyQueue">No active deliveries.</p>}</div><div><h3 className="queueTitle">Delivered Today <span>{deliveredRequests.length}</span></h3>{deliveredRequests.length?deliveredRequests.map(requestCard):<p className="emptyQueue">No completed deliveries yet.</p>}</div></div>}{isLine&&<div className="lineRequestList"><h3 className="queueTitle">Your Requests <span>{requests.length}</span></h3>{requests.length?requests.map(requestCard):<p className="emptyQueue">No requests yet. Send the first request above.</p>}</div>}{isLeadership&&<div className="lineRequestList"><h3 className="queueTitle">All Live Requests <span>{requests.length}</span></h3>{requests.length?requests.map(requestCard):<p className="emptyQueue">No material requests yet.</p>}</div>}</>}
   </section>;
