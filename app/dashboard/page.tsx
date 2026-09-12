@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MaterialRequestFlow from '../../components/MaterialRequestFlow';
+import ModelPartsSetup from '../../components/ModelPartsSetup';
 
 type DemoUser = { name: string; role: string; username: string };
 
@@ -25,6 +26,7 @@ export default function DashboardPage() {
   const isGreg = user.username === 'greg';
   const isTristen = user.username === 'tristen';
   const isLine = user.username.startsWith('line');
+  const canManageParts = ['tammy', 'chance', 'debbie', 'jose', 'greg', 'tristen'].includes(user.username);
 
   return (
     <main className="shell">
@@ -34,6 +36,7 @@ export default function DashboardPage() {
       </section>
 
       <MaterialRequestFlow user={user} />
+      {canManageParts && <ModelPartsSetup user={user} />}
 
       {isTammy && <>
         <section className="sectionBlock"><p className="eyebrow">Remote Operations Leadership</p><h2>Houston Operations Overview</h2><p className="dashboardRole">Live leadership view of the Houston production operation from Pennsylvania.</p></section>
@@ -78,13 +81,13 @@ export default function DashboardPage() {
       </section>}
 
       {isLine && <section className="dashboardGrid">
-        <article className="metricCard"><span>Material Request</span><strong>Live Ordering</strong><p>Send boom and hood requests directly to the responsible material handler.</p></article>
+        <article className="metricCard"><span>Material Request</span><strong>Live Ordering</strong><p>Select the model and quantity. LineFlow builds the detailed parts list for the material handler.</p></article>
         <article className="metricCard"><span>Active Requests</span><strong>Track Status</strong><p>Requested → Accepted → Picked Up → In Transit → Delivered → Confirmed.</p></article>
         <article className="metricCard"><span>Priority</span><strong>Normal / Urgent</strong><p>Urgent requests are highlighted in the material handler queue.</p></article>
         <article className="metricCard"><span>Recent Deliveries</span><strong>Delivery History</strong><p>Review completed requests and confirm receipt.</p></article>
       </section>}
 
-      <section className="sectionBlock"><p className="eyebrow">Demo Status</p><h2>Live request workflow is active.</h2><p className="dashboardRole">Line users can send requests, Greg and Tristen can accept and deliver them, and connected dashboards receive realtime database updates.</p></section>
+      <section className="sectionBlock"><p className="eyebrow">Demo Status</p><h2>Live request workflow is active.</h2><p className="dashboardRole">Line users request by model, handlers receive the required parts with quantities, part numbers, and locations, and every part can be checked off as delivered.</p></section>
     </main>
   );
 }
