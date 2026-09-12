@@ -28,6 +28,7 @@ export default function DashboardPage() {
   }
 
   const isAdmin = ['debbie', 'tammy', 'chance'].includes(user.username);
+  const isJose = user.username === 'jose';
   const isGreg = user.username === 'greg';
   const isTristen = user.username === 'tristen';
   const isLine = user.username.startsWith('line');
@@ -49,6 +50,15 @@ export default function DashboardPage() {
           <article className="metricCard"><span>Live Requests</span><strong>All 4 Lines</strong><p>Monitor open, urgent, and delivered requests.</p></article>
           <article className="metricCard"><span>Inventory</span><strong>Live Status</strong><p>Review locations, shortages, overages, and low-stock alerts.</p></article>
           <article className="metricCard"><span>Operations</span><strong>Full Control</strong><p>Manage routing, priorities, goals, reports, and workflow changes.</p></article>
+        </section>
+      )}
+
+      {isJose && (
+        <section className="dashboardGrid">
+          <article className="metricCard"><span>Boom Line</span><strong>Material Oversight</strong><p>Monitor boom-line readiness, material status, shortages, and open issues.</p></article>
+          <article className="metricCard"><span>Production Schedule</span><strong>View & Update</strong><p>Jose can update the boom-line schedule, completion targets, status, and comments.</p></article>
+          <article className="metricCard"><span>Inventory</span><strong>Boom Material Status</strong><p>Review boom parts, quantities, staging locations, and material risk.</p></article>
+          <article className="metricCard"><span>Delivery Support</span><strong>Greg Workflow</strong><p>See boom requests and delivery activity supporting the boom line.</p></article>
         </section>
       )}
 
