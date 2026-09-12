@@ -32,13 +32,13 @@ LineFlow AI is designed to improve communication between assembly-line personnel
 
 | Contributor | Operational Role | Project Role |
 | --- | --- | --- |
-| Tammy | Supervisor | Workflow contributor / supervisor feedback |
-| Chance | Supervisor | Workflow contributor / supervisor feedback |
-| Greg | Material Handler | Developer / system administrator / workflow contributor |
+| Tammy | Supervisor | System Administrator / workflow contributor / supervisor feedback |
+| Chance | Supervisor | System Administrator / workflow contributor / supervisor feedback |
+| Greg | Material Handler | Developer / System Administrator / workflow contributor |
 
 ## Access Model
 
-Operational job roles and application permissions are kept separate. Supervisors can receive supervisor-level visibility, while Greg can use the Material Handler workflow and retain administrator/developer permissions for building and maintaining the system.
+Operational job roles and application permissions are kept separate. Tammy and Chance have Supervisor and System Administrator access. Greg uses the Material Handler workflow while also retaining Developer and System Administrator permissions for building and maintaining the system.
 
 ## Status
 
