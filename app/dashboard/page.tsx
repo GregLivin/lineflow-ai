@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import MaterialRequestFlow from '../../components/MaterialRequestFlow';
 
 type DemoUser = { name: string; role: string; username: string };
 
@@ -31,6 +32,8 @@ export default function DashboardPage() {
         <div><p className="eyebrow">LineFlow AI Dashboard</p><h1 className="dashboardTitle">Welcome, {user.name}</h1><p className="dashboardRole">{user.role}</p></div>
         <button className="secondaryButton" onClick={signOut}>Sign Out</button>
       </section>
+
+      <MaterialRequestFlow user={user} />
 
       {isTammy && <>
         <section className="sectionBlock"><p className="eyebrow">Remote Operations Leadership</p><h2>Houston Operations Overview</h2><p className="dashboardRole">Live leadership view of the Houston production operation from Pennsylvania.</p></section>
@@ -75,13 +78,13 @@ export default function DashboardPage() {
       </section>}
 
       {isLine && <section className="dashboardGrid">
-        <article className="metricCard"><span>Material Request</span><strong>Place New Order</strong><p>Request material for {user.name}.</p></article>
-        <article className="metricCard"><span>Active Requests</span><strong>Track Status</strong><p>Requested → Accepted → Picked Up → In Transit → Delivered.</p></article>
-        <article className="metricCard"><span>Priority</span><strong>Normal / Urgent</strong><p>Priority options follow the approved production workflow.</p></article>
-        <article className="metricCard"><span>Recent Deliveries</span><strong>Delivery History</strong><p>Review what was delivered and when.</p></article>
+        <article className="metricCard"><span>Material Request</span><strong>Live Ordering</strong><p>Send boom and hood requests directly to the responsible material handler.</p></article>
+        <article className="metricCard"><span>Active Requests</span><strong>Track Status</strong><p>Requested → Accepted → Picked Up → In Transit → Delivered → Confirmed.</p></article>
+        <article className="metricCard"><span>Priority</span><strong>Normal / Urgent</strong><p>Urgent requests are highlighted in the material handler queue.</p></article>
+        <article className="metricCard"><span>Recent Deliveries</span><strong>Delivery History</strong><p>Review completed requests and confirm receipt.</p></article>
       </section>}
 
-      <section className="sectionBlock"><p className="eyebrow">Demo Status</p><h2>Role login is active.</h2><p className="dashboardRole">The shared database will make schedule changes, requests, inventory, alerts, and deliveries update live across every device.</p></section>
+      <section className="sectionBlock"><p className="eyebrow">Demo Status</p><h2>Live request workflow is active.</h2><p className="dashboardRole">Line users can send requests, Greg and Tristen can accept and deliver them, and connected dashboards receive realtime database updates.</p></section>
     </main>
   );
 }
