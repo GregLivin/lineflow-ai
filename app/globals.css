@@ -23,14 +23,8 @@ body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-a {
-  color: inherit;
-}
-
-button,
-input {
-  font: inherit;
-}
+a { color: inherit; }
+button, input, select, textarea { font: inherit; }
 
 .shell {
   width: min(1120px, calc(100% - 28px));
@@ -38,9 +32,7 @@ input {
   padding: 28px 0 56px;
 }
 
-.homeShell {
-  padding-top: 22px;
-}
+.homeShell { padding-top: 22px; }
 
 .hero,
 .sectionBlock,
@@ -53,15 +45,8 @@ input {
   box-shadow: 0 22px 50px rgba(0, 0, 0, 0.2);
 }
 
-.hero {
-  padding: 30px;
-}
-
-.operationsHero {
-  overflow: hidden;
-  position: relative;
-}
-
+.hero { padding: 30px; }
+.operationsHero { overflow: hidden; position: relative; }
 .operationsHero::after {
   content: "";
   position: absolute;
@@ -74,19 +59,8 @@ input {
   pointer-events: none;
 }
 
-.heroTopRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 28px;
-}
-
-.brandRow {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
+.heroTopRow { display: flex; justify-content: space-between; align-items: flex-start; gap: 28px; }
+.brandRow { display: flex; align-items: center; gap: 16px; }
 .logoMark {
   width: 58px;
   height: 58px;
@@ -99,27 +73,10 @@ input {
   letter-spacing: -0.04em;
 }
 
-h1,
-h2,
-h3,
-p {
-  margin-top: 0;
-}
-
-h1 {
-  margin-bottom: 0;
-  font-size: clamp(2rem, 7vw, 4rem);
-  letter-spacing: -0.05em;
-}
-
-h2 {
-  font-size: clamp(1.5rem, 4vw, 2.4rem);
-  letter-spacing: -0.035em;
-}
-
-h3 {
-  margin-bottom: 10px;
-}
+h1, h2, h3, p { margin-top: 0; }
+h1 { margin-bottom: 0; font-size: clamp(2rem, 7vw, 4rem); letter-spacing: -0.05em; }
+h2 { font-size: clamp(1.5rem, 4vw, 2.4rem); letter-spacing: -0.035em; }
+h3 { margin-bottom: 10px; }
 
 .eyebrow {
   margin-bottom: 6px;
@@ -143,16 +100,8 @@ h3 {
   line-height: 1.65;
 }
 
-.heroCopy {
-  max-width: 760px;
-  font-size: clamp(1.05rem, 2.4vw, 1.3rem);
-  margin: 24px 0;
-}
-
-.compactHeroCopy {
-  max-width: 830px;
-  margin-bottom: 12px;
-}
+.heroCopy { max-width: 760px; font-size: clamp(1.05rem, 2.4vw, 1.3rem); margin: 24px 0; }
+.compactHeroCopy { max-width: 830px; margin-bottom: 12px; }
 
 .liveClock {
   min-width: 280px;
@@ -166,47 +115,13 @@ h3 {
   z-index: 1;
 }
 
-.clockLabel,
-.clockDate,
-.clockZone {
-  display: block;
-}
+.clockLabel, .clockDate, .clockZone { display: block; }
+.clockLabel { color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.68rem; font-weight: 800; margin-bottom: 7px; }
+.clockDate { color: #dbeafe; font-size: 0.92rem; font-weight: 700; }
+.clockTime { display: block; font-size: clamp(1.8rem, 4vw, 2.7rem); letter-spacing: -0.04em; margin: 3px 0; }
+.clockZone { color: var(--muted); font-size: 0.76rem; }
 
-.clockLabel {
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.68rem;
-  font-weight: 800;
-  margin-bottom: 7px;
-}
-
-.clockDate {
-  color: #dbeafe;
-  font-size: 0.92rem;
-  font-weight: 700;
-}
-
-.clockTime {
-  display: block;
-  font-size: clamp(1.8rem, 4vw, 2.7rem);
-  letter-spacing: -0.04em;
-  margin: 3px 0;
-}
-
-.clockZone {
-  color: var(--muted);
-  font-size: 0.76rem;
-}
-
-.operationsStatusRow {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px 18px;
-  margin-top: 30px;
-}
-
+.operationsStatusRow { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 18px; margin-top: 30px; }
 .statusStrip {
   display: inline-flex;
   align-items: center;
@@ -218,33 +133,12 @@ h3 {
   color: #c7eafe;
   font-size: 0.9rem;
 }
+.statusDot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 18px rgba(34, 197, 94, 0.9); }
+.systemMeta { color: var(--muted); font-size: 0.9rem; }
 
-.statusDot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--accent-2);
-  box-shadow: 0 0 18px rgba(34, 197, 94, 0.9);
-}
-
-.systemMeta {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 26px;
-}
-
-.homeActions {
-  margin-top: 22px;
-}
-
-.primaryButton,
-.secondaryButton {
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.homeActions { margin-top: 22px; }
+.primaryButton, .secondaryButton {
   min-height: 48px;
   border-radius: 14px;
   padding: 0 18px;
@@ -252,314 +146,139 @@ h3 {
   font-weight: 800;
   cursor: pointer;
 }
+.primaryButton { background: var(--accent); color: #04121d; }
+.primaryButton:disabled { opacity: 0.55; cursor: not-allowed; }
+.secondaryButton { background: transparent; color: var(--text); border-color: var(--border); }
+.linkButton { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 
-.primaryButton {
-  background: var(--accent);
-  color: #04121d;
-}
+.sectionBlock, .installCard { margin-top: 18px; padding: 26px; }
+.homeOverview { background: linear-gradient(180deg, rgba(15, 27, 45, 0.9), rgba(11, 20, 34, 0.96)); }
+.roleGrid, .dashboardGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.roleCard, .metricCard { background: var(--panel-2); border: 1px solid var(--border); border-radius: 18px; padding: 20px; }
+.roleCard p, .metricCard p { margin-bottom: 0; }
+.metricCard span { display: block; color: var(--accent); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.metricCard strong { display: block; font-size: 1.4rem; margin-bottom: 8px; }
+.flowBlock h2 { max-width: 850px; }
+.installCard { background: linear-gradient(135deg, rgba(56, 189, 248, 0.13), rgba(34, 197, 94, 0.08)); }
 
-.secondaryButton {
-  background: transparent;
-  color: var(--text);
-  border-color: var(--border);
-}
+.scheduleSection { padding: 22px 22px 18px; }
+.scheduleHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 18px; }
+.scheduleHeader h2 { margin-bottom: 6px; }
+.scheduleActions { display: flex; gap: 10px; flex-wrap: wrap; }
+.scheduleTableWrap { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 16px; background: #0b1728; }
+.scheduleTable { width: 100%; min-width: 980px; border-collapse: collapse; }
+.scheduleTable th, .scheduleTable td { padding: 12px 14px; border-bottom: 1px solid rgba(148, 163, 184, 0.12); border-right: 1px solid rgba(148, 163, 184, 0.08); text-align: left; vertical-align: middle; }
+.scheduleTable th { background: #12243b; color: #c7eafe; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+.scheduleTable tr:last-child td { border-bottom: 0; }
+.scheduleTable tbody tr:hover { background: rgba(56, 189, 248, 0.035); }
+.scheduleStatus { display: inline-flex; padding: 5px 9px; border-radius: 999px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.18); color: #d7f1ff; font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+.scheduleInput { width: 100%; min-width: 90px; border-radius: 9px; border: 1px solid var(--border); background: #071321; color: var(--text); padding: 8px 9px; outline: none; }
+.scheduleInput:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.12); }
+.removeRowButton { border: 1px solid rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.08); color: #fecaca; border-radius: 9px; padding: 8px 10px; cursor: pointer; }
+.scheduleFootnote { margin: 12px 0 0; font-size: 0.82rem; }
 
-.linkButton {
+.authShell { min-height: 100vh; display: grid; place-items: center; }
+.authCard { width: min(560px, 100%); padding: 30px; }
+.authTitle, .dashboardTitle { font-size: clamp(2rem, 5vw, 3rem); }
+.authCopy { margin: 24px 0; }
+.loginForm { display: grid; gap: 16px; }
+.loginForm label { display: grid; gap: 8px; font-weight: 700; }
+.loginForm input { width: 100%; border-radius: 14px; border: 1px solid var(--border); background: #0b1728; color: var(--text); padding: 14px 15px; outline: none; }
+.loginForm input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12); }
+.formError { color: #fca5a5; margin: 0; }
+.fullButton { width: 100%; }
+.demoNote { margin: 18px 0 0; font-size: 0.9rem; }
+
+.dashboardHeader { padding: 26px; display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+.dashboardRole { margin: 8px 0 0; }
+.dashboardGrid { margin-top: 18px; }
+
+.requestFlowSection { padding: 24px; }
+.requestFlowHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.requestFlowHeader h2 { margin-bottom: 6px; }
+.liveRequestIndicator {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  text-decoration: none;
-}
-
-.sectionBlock,
-.installCard {
-  margin-top: 18px;
-  padding: 26px;
-}
-
-.homeOverview {
-  background: linear-gradient(180deg, rgba(15, 27, 45, 0.9), rgba(11, 20, 34, 0.96));
-}
-
-.roleGrid,
-.dashboardGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.roleCard,
-.metricCard {
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 20px;
-}
-
-.roleCard p,
-.metricCard p {
-  margin-bottom: 0;
-}
-
-.metricCard span {
-  display: block;
-  color: var(--accent);
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 8px;
-}
-
-.metricCard strong {
-  display: block;
-  font-size: 1.4rem;
-  margin-bottom: 8px;
-}
-
-.flowBlock h2 {
-  max-width: 850px;
-}
-
-.installCard {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.13), rgba(34, 197, 94, 0.08));
-}
-
-.scheduleSection {
-  padding: 22px 22px 18px;
-}
-
-.scheduleHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 18px;
-  margin-bottom: 18px;
-}
-
-.scheduleHeader h2 {
-  margin-bottom: 6px;
-}
-
-.scheduleActions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.scheduleTableWrap {
-  width: 100%;
-  overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: #0b1728;
-}
-
-.scheduleTable {
-  width: 100%;
-  min-width: 980px;
-  border-collapse: collapse;
-}
-
-.scheduleTable th,
-.scheduleTable td {
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-  border-right: 1px solid rgba(148, 163, 184, 0.08);
-  text-align: left;
-  vertical-align: middle;
-}
-
-.scheduleTable th {
-  background: #12243b;
-  color: #c7eafe;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-.scheduleTable tr:last-child td {
-  border-bottom: 0;
-}
-
-.scheduleTable tbody tr:hover {
-  background: rgba(56, 189, 248, 0.035);
-}
-
-.scheduleStatus {
-  display: inline-flex;
-  padding: 5px 9px;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  background: rgba(34, 197, 94, 0.07);
   border-radius: 999px;
-  background: rgba(56, 189, 248, 0.1);
-  border: 1px solid rgba(56, 189, 248, 0.18);
-  color: #d7f1ff;
-  font-size: 0.82rem;
-  font-weight: 700;
+  color: #bbf7d0;
+  font-size: 0.8rem;
+  font-weight: 800;
   white-space: nowrap;
 }
-
-.scheduleInput {
+.requestMessage {
+  margin: 16px 0 0;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.16);
+  color: #d7f1ff;
+}
+.requestForm { margin-top: 22px; padding: 20px; border-radius: 18px; border: 1px solid var(--border); background: #0b1728; }
+.requestTypeButtons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+.typeButton { min-height: 52px; border: 1px solid var(--border); border-radius: 14px; background: #101f33; color: var(--text); font-weight: 900; cursor: pointer; }
+.activeTypeButton { border-color: var(--accent); background: rgba(56, 189, 248, 0.12); color: #dff5ff; }
+.requestFormGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.requestForm label, .notesLabel { display: grid; gap: 7px; color: #dbeafe; font-size: 0.86rem; font-weight: 800; }
+.requestForm input, .requestForm select, .requestForm textarea {
   width: 100%;
-  min-width: 90px;
-  border-radius: 9px;
   border: 1px solid var(--border);
+  border-radius: 12px;
   background: #071321;
   color: var(--text);
-  padding: 8px 9px;
+  padding: 12px 13px;
   outline: none;
 }
+.requestForm input:focus, .requestForm select:focus, .requestForm textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.1); }
+.notesLabel { margin-top: 14px; }
+.requestForm textarea { min-height: 86px; resize: vertical; }
+.requestSubmitRow { display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; align-items: end; margin-top: 16px; }
+.requestSubmitRow div { padding: 11px 13px; border-radius: 12px; border: 1px solid var(--border); background: #101f33; }
+.requestSubmitRow span { display: block; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; }
+.requestSubmitRow strong { display: block; margin-top: 5px; }
 
-.scheduleInput:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.12);
-}
+.requestColumns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 22px; align-items: start; }
+.lineRequestList { margin-top: 22px; }
+.queueTitle { display: flex; align-items: center; gap: 8px; font-size: 1rem; color: #dbeafe; }
+.queueTitle span { display: inline-grid; place-items: center; min-width: 25px; height: 25px; padding: 0 7px; border-radius: 999px; background: rgba(56, 189, 248, 0.12); color: var(--accent); font-size: 0.76rem; }
+.emptyQueue { color: var(--muted); border: 1px dashed var(--border); border-radius: 14px; padding: 18px; }
+.requestCard { margin-top: 10px; padding: 16px; border-radius: 16px; border: 1px solid var(--border); background: #101f33; box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
+.urgentRequest { border-color: rgba(248, 113, 113, 0.55); box-shadow: inset 4px 0 0 #f87171, 0 10px 24px rgba(0,0,0,0.12); }
+.requestCardTop { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.requestLine { color: var(--accent); font-size: 0.72rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.09em; }
+.requestCard h3 { margin: 4px 0 0; font-size: 1.08rem; }
+.priorityBadge { display: inline-flex; padding: 5px 8px; border-radius: 999px; border: 1px solid var(--border); color: #cbd5e1; font-size: 0.68rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.07em; }
+.priorityUrgent { border-color: rgba(248, 113, 113, 0.45); background: rgba(248, 113, 113, 0.1); color: #fecaca; }
+.requestMetaGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.requestMetaGrid div { border: 1px solid rgba(148,163,184,0.12); background: rgba(7,19,33,0.6); border-radius: 10px; padding: 9px; }
+.requestMetaGrid span { display: block; color: var(--muted); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 800; }
+.requestMetaGrid strong { display: block; margin-top: 4px; font-size: 0.86rem; }
+.requestNotes { margin: 12px 0 0; color: #cbd5e1; font-size: 0.86rem; line-height: 1.5; }
+.requestTiming { display: flex; justify-content: space-between; gap: 10px; margin-top: 12px; color: var(--muted); font-size: 0.72rem; }
+.requestAction { width: 100%; margin-top: 14px; min-height: 44px; }
 
-.removeRowButton {
-  border: 1px solid rgba(248, 113, 113, 0.3);
-  background: rgba(248, 113, 113, 0.08);
-  color: #fecaca;
-  border-radius: 9px;
-  padding: 8px 10px;
-  cursor: pointer;
-}
-
-.scheduleFootnote {
-  margin: 12px 0 0;
-  font-size: 0.82rem;
-}
-
-.authShell {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-}
-
-.authCard {
-  width: min(560px, 100%);
-  padding: 30px;
-}
-
-.authTitle,
-.dashboardTitle {
-  font-size: clamp(2rem, 5vw, 3rem);
-}
-
-.authCopy {
-  margin: 24px 0;
-}
-
-.loginForm {
-  display: grid;
-  gap: 16px;
-}
-
-.loginForm label {
-  display: grid;
-  gap: 8px;
-  font-weight: 700;
-}
-
-.loginForm input {
-  width: 100%;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: #0b1728;
-  color: var(--text);
-  padding: 14px 15px;
-  outline: none;
-}
-
-.loginForm input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
-}
-
-.formError {
-  color: #fca5a5;
-  margin: 0;
-}
-
-.fullButton {
-  width: 100%;
-}
-
-.demoNote {
-  margin: 18px 0 0;
-  font-size: 0.9rem;
-}
-
-.dashboardHeader {
-  padding: 26px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 18px;
-}
-
-.dashboardRole {
-  margin: 8px 0 0;
-}
-
-.dashboardGrid {
-  margin-top: 18px;
+@media (max-width: 900px) {
+  .requestColumns { grid-template-columns: 1fr; }
+  .requestSubmitRow { grid-template-columns: 1fr 1fr; }
+  .requestSubmitRow button { grid-column: 1 / -1; }
 }
 
 @media (max-width: 760px) {
-  .heroTopRow,
-  .scheduleHeader {
-    flex-direction: column;
-  }
-
-  .liveClock {
-    width: 100%;
-    text-align: left;
-    min-width: 0;
-  }
+  .heroTopRow, .scheduleHeader, .requestFlowHeader { flex-direction: column; }
+  .liveClock { width: 100%; text-align: left; min-width: 0; }
+  .liveRequestIndicator { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 680px) {
-  .shell {
-    width: min(100% - 18px, 1120px);
-    padding-top: 12px;
-  }
-
-  .hero,
-  .sectionBlock,
-  .installCard,
-  .authCard,
-  .dashboardHeader {
-    border-radius: 20px;
-  }
-
-  .hero,
-  .sectionBlock,
-  .installCard,
-  .authCard,
-  .dashboardHeader {
-    padding: 20px;
-  }
-
-  .roleGrid,
-  .dashboardGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .actions,
-  .scheduleActions {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .primaryButton,
-  .secondaryButton,
-  .linkButton,
-  .scheduleActions button {
-    width: 100%;
-  }
-
-  .dashboardHeader {
-    align-items: stretch;
-    flex-direction: column;
-  }
+  .shell { width: min(100% - 18px, 1120px); padding-top: 12px; }
+  .hero, .sectionBlock, .installCard, .authCard, .dashboardHeader { border-radius: 20px; padding: 20px; }
+  .roleGrid, .dashboardGrid, .requestFormGrid, .requestSubmitRow { grid-template-columns: 1fr; }
+  .requestSubmitRow button { grid-column: auto; }
+  .actions, .scheduleActions { flex-direction: column; width: 100%; }
+  .primaryButton, .secondaryButton, .linkButton, .scheduleActions button { width: 100%; }
+  .dashboardHeader { align-items: stretch; flex-direction: column; }
+  .requestTypeButtons { grid-template-columns: 1fr; }
 }
