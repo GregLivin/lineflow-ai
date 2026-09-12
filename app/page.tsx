@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import LiveClock from '../components/LiveClock';
+import ProductionSchedule from '../components/ProductionSchedule';
 
 const roles = [
   {
@@ -15,8 +16,8 @@ const roles = [
     text: "Monitor production plans, priorities, handlers, inventory, goals, and material flow in real time.",
   },
   {
-    title: "System Administrator",
-    text: "Manage users, roles, lines, handler assignments, workflow changes, and system settings.",
+    title: "Boom Line Material Specialist",
+    text: "Oversee boom-line material readiness, schedule status, issues, and production support.",
   },
 ];
 
@@ -54,6 +55,8 @@ export default function Home() {
         </div>
       </section>
 
+      <ProductionSchedule />
+
       <section className="sectionBlock homeOverview">
         <div className="sectionHeading">
           <div>
@@ -76,7 +79,7 @@ export default function Home() {
         <p className="eyebrow">Core Request Flow</p>
         <h2>Requested → Accepted → Picked Up → In Transit → Delivered → Confirmed</h2>
         <p>
-          Requests route to the correct material handler while Debbie, Tammy, and Chance maintain full operational visibility and control.
+          Requests route to the correct material handler while Debbie, Tammy, Chance, and Jose maintain the visibility needed for production support.
         </p>
       </section>
     </main>
