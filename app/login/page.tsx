@@ -7,8 +7,8 @@ const demoUsers: Record<string, { name: string; role: string }> = {
   greg: { name: 'Greg', role: 'Boom Material Handler / Combi Lift' },
   tristen: { name: 'Tristen', role: 'Hood Material Handler / Forklift' },
   debbie: { name: 'Debbie', role: 'Planner / System Administrator' },
-  tammy: { name: 'Tammy', role: 'Supervisor / System Administrator' },
-  chance: { name: 'Chance', role: 'Supervisor / System Administrator' },
+  tammy: { name: 'Tammy', role: 'Operations Leadership / System Administrator' },
+  chance: { name: 'Chance', role: 'Houston Supervisor / System Administrator' },
   jose: { name: 'Jose', role: 'Boom Line Material Specialist' },
   line1: { name: 'Line 1', role: 'Assembly Line User' },
   line2: { name: 'Line 2', role: 'Assembly Line User' },
@@ -50,31 +50,11 @@ export default function LoginPage() {
         <p className="authCopy">Use your assigned LineFlow demo username and password.</p>
 
         <form className="loginForm" onSubmit={handleSubmit}>
-          <label>
-            Username
-            <input
-              autoComplete="username"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              placeholder="Greg, Debbie, Jose, Line1..."
-            />
-          </label>
-
-          <label>
-            Password
-            <input
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Enter password"
-            />
-          </label>
-
+          <label>Username<input autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Greg, Debbie, Jose, Line1..." /></label>
+          <label>Password<input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter password" /></label>
           {error ? <p className="formError">{error}</p> : null}
           <button className="primaryButton fullButton" type="submit">Sign In</button>
         </form>
-
         <p className="demoNote">Demo password for all current accounts: <strong>12345</strong></p>
       </section>
     </main>
