@@ -9,6 +9,7 @@ const demoUsers: Record<string, { name: string; role: string }> = {
   debbie: { name: 'Debbie', role: 'Planner / System Administrator' },
   tammy: { name: 'Tammy', role: 'Supervisor / System Administrator' },
   chance: { name: 'Chance', role: 'Supervisor / System Administrator' },
+  jose: { name: 'Jose', role: 'Boom Line Material Specialist' },
   line1: { name: 'Line 1', role: 'Assembly Line User' },
   line2: { name: 'Line 2', role: 'Assembly Line User' },
   line3: { name: 'Line 3', role: 'Assembly Line User' },
@@ -55,7 +56,7 @@ export default function LoginPage() {
               autoComplete="username"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              placeholder="Greg, Debbie, Line1..."
+              placeholder="Greg, Debbie, Jose, Line1..."
             />
           </label>
 
