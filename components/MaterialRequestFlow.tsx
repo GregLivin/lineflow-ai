@@ -48,7 +48,7 @@ type ModelPart = {
   location: string | null;
 };
 
-const models = ['600S', '800S', '1200SJP', '1500SJ'];
+const starterModels = ['600S', '800S', '1200SJP', '1500SJ'];
 
 function timeLabel(value: string | null) {
   if (!value) return '—';
@@ -65,6 +65,7 @@ function elapsed(from: string, to?: string | null) {
 
 export default function MaterialRequestFlow({ user }: { user: DemoUser }) {
   const [requests, setRequests] = useState<MaterialRequest[]>([]);
+  const [availableModels, setAvailableModels] = useState(starterModels);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
@@ -80,6 +81,19 @@ export default function MaterialRequestFlow({ user }: { user: DemoUser }) {
   const isLeadership = ['tammy', 'chance', 'debbie', 'jose'].includes(user.username);
   const handler = isGreg ? 'greg' : isTristen ? 'tristen' : null;
   const lineName = isLine ? `Line ${user.username.replace('line', '')}` : null;
+
+  async function loadModels(type: 'Boom' | 'Hood' = materialType) {
+    const { data } = await supabase
+      .from('model_parts')
+      .select('model')
+      .eq('material_type', type)
+      .eq('active', true);
+
+    const configured = (data ?? []).map(row => row.model as string);
+    const nextModels = Array.from(new Set([...starterModels, ...configured])).sort();
+    setAvailableModels(nextModels);
+    if (!nextModels.includes(model)) setModel(nextModels[0] ?? '1200SJP');
+  }
 
   async function loadRequests(showLoading = false) {
     if (showLoading) setLoading(true);
@@ -104,6 +118,7 @@ export default function MaterialRequestFlow({ user }: { user: DemoUser }) {
 
   useEffect(() => {
     loadRequests(true);
+    loadModels();
 
     const requestChannel = supabase
       .channel(`lineflow-material-requests-${user.username}`)
@@ -115,14 +130,25 @@ export default function MaterialRequestFlow({ user }: { user: DemoUser }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'request_parts' }, () => loadRequests())
       .subscribe();
 
+    const modelChannel = supabase
+      .channel(`lineflow-request-models-${user.username}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'model_parts' }, () => loadModels())
+      .subscribe();
+
     const timer = window.setInterval(() => setRequests(current => [...current]), 1000);
 
     return () => {
       window.clearInterval(timer);
       supabase.removeChannel(requestChannel);
       supabase.removeChannel(partChannel);
+      supabase.removeChannel(modelChannel);
     };
   }, [user.username]);
+
+  async function chooseMaterialType(nextType: 'Boom' | 'Hood') {
+    setMaterialType(nextType);
+    await loadModels(nextType);
+  }
 
   async function submitRequest(event: FormEvent) {
     event.preventDefault();
@@ -305,14 +331,14 @@ export default function MaterialRequestFlow({ user }: { user: DemoUser }) {
       {isLine && (
         <form className="requestForm" onSubmit={submitRequest}>
           <div className="requestTypeButtons">
-            <button type="button" className={materialType === 'Boom' ? 'typeButton activeTypeButton' : 'typeButton'} onClick={() => setMaterialType('Boom')}>Boom</button>
-            <button type="button" className={materialType === 'Hood' ? 'typeButton activeTypeButton' : 'typeButton'} onClick={() => setMaterialType('Hood')}>Hood</button>
+            <button type="button" className={materialType === 'Boom' ? 'typeButton activeTypeButton' : 'typeButton'} onClick={() => chooseMaterialType('Boom')}>Boom</button>
+            <button type="button" className={materialType === 'Hood' ? 'typeButton activeTypeButton' : 'typeButton'} onClick={() => chooseMaterialType('Hood')}>Hood</button>
           </div>
 
           <div className="requestFormGrid">
             <label>Model
               <select value={model} onChange={e => setModel(e.target.value)}>
-                {models.map(item => <option key={item} value={item}>{item}</option>)}
+                {availableModels.map(item => <option key={item} value={item}>{item}</option>)}
               </select>
             </label>
             <label>How Many Machines / Sets
