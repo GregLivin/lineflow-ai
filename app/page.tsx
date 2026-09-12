@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 const roles = [
   {
     title: "Line User",
@@ -8,12 +10,12 @@ const roles = [
     text: "Receive assigned requests, accept jobs, and update delivery status.",
   },
   {
-    title: "Supervisor",
-    text: "Monitor lines, priorities, handlers, and material flow in real time.",
+    title: "Supervisor / Planner",
+    text: "Monitor production plans, priorities, handlers, inventory, goals, and material flow in real time.",
   },
   {
     title: "System Administrator",
-    text: "Manage users, roles, lines, handler assignments, and system settings.",
+    text: "Manage users, roles, lines, handler assignments, workflow changes, and system settings.",
   },
 ];
 
@@ -30,7 +32,7 @@ export default function Home() {
         </div>
 
         <p className="heroCopy">
-          Real-time material requests, routing, delivery tracking, and supervisor visibility in one installable app.
+          Real-time material requests, routing, delivery tracking, inventory visibility, and production planning in one installable app.
         </p>
 
         <div className="statusStrip">
@@ -39,8 +41,8 @@ export default function Home() {
         </div>
 
         <div className="actions">
-          <button className="primaryButton">Request Material</button>
-          <button className="secondaryButton">Open Dashboard</button>
+          <Link className="primaryButton linkButton" href="/login">Request Material</Link>
+          <Link className="secondaryButton linkButton" href="/login">Open Dashboard</Link>
         </div>
       </section>
 
@@ -64,9 +66,9 @@ export default function Home() {
 
       <section className="sectionBlock flowBlock">
         <p className="eyebrow">Core request flow</p>
-        <h2>Requested → Accepted → In Transit → Delivered</h2>
+        <h2>Requested → Accepted → Picked Up → In Transit → Delivered → Confirmed</h2>
         <p>
-          Each request will be routed to the material handler assigned to that line, while supervisors and administrators maintain visibility across the operation.
+          Each request is routed to the material handler responsible for that material while Debbie, Tammy, and Chance maintain full operational visibility and control.
         </p>
       </section>
 
