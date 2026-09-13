@@ -9,6 +9,7 @@ import YardReconditioning from '../../components/YardReconditioning';
 import TeamMessageBoard from '../../components/TeamMessageBoard';
 import ProductionGoals from '../../components/ProductionGoals';
 import ProductionIntelligence from '../../components/ProductionIntelligence';
+import LiveInventory from '../../components/LiveInventory';
 
 type UserGroup = 'line' | 'handler' | 'supervisor' | 'specialist';
 type DemoUser = { name: string; role: string; username: string; group?: UserGroup };
@@ -43,7 +44,7 @@ export default function DashboardPage(){
   function openPanel(panel:Exclude<PanelKey,null>){
     setActivePanel(panel);
     window.setTimeout(()=>{
-      if(panel==='inventory') jumpTo('parts');
+      if(panel==='inventory') jumpTo('live-inventory');
       else if(panel==='yard') jumpTo('yard-reconditioning');
       else if(panel==='goals') jumpTo('production-goals');
       else if(panel==='requests') jumpTo('requests');
@@ -80,6 +81,7 @@ export default function DashboardPage(){
       <TeamMessageBoard user={user}/>
       <ProductionSchedule/>
       <ProductionIntelligence/>
+      <LiveInventory user={user}/>
     </main>;
   }
 
@@ -89,19 +91,20 @@ export default function DashboardPage(){
       <TeamMessageBoard user={user}/>
       <section className="dashboardGrid supervisorCoreGrid">
         <ClickCard label="Material Requests" value="Lines 1–4" text="Monitor open, urgent, active, delivered, and confirmed requests across production." panel="requests" onOpen={openPanel}/>
-        <ClickCard label="Inventory" value="Parts & Stock" text="Review part numbers, locations, material readiness, shortages, and stock information." panel="inventory" onOpen={openPanel}/>
+        <ClickCard label="Inventory" value="Parts & Stock" text="Review and update live stock, part numbers, locations, shortages, and incoming material." panel="inventory" onOpen={openPanel}/>
         <ClickCard label="Yard & Reconditioning" value="Boom Lifts" text="Track exact units in the yard, reconditioning status, waiting on material, green tags, and completed units." panel="yard" onOpen={openPanel}/>
         <ClickCard label="Production Goals" value="Live Progress" text="Track today’s green tag target, completed units, remaining goal, waiting on material, and completion percentage." panel="goals" onOpen={openPanel}/>
       </section>
     </> : <>
       <section className="sectionBlock dashboardToolPanel"><p className="eyebrow">Your Access</p><h2>{accessTitle}</h2><p className="dashboardRole">{accessText}</p></section>
       {isLine&&<section className="dashboardGrid"><ClickCard label="Request Material" value="Create Request" text="Select the model or material needed and send it." panel="requests" onOpen={openPanel}/><ClickCard label="Track Requests" value="Live Status" text="Track the request through delivery and confirmation." panel="requests" onOpen={openPanel}/></section>}
-      {isHandler&&<section className="dashboardGrid"><ClickCard label="Assigned Requests" value={isGreg?'Boom Queue':isTristen?'Hood Queue':'My Queue'} text="Accept assigned material requests and work them in priority order." panel="requests" onOpen={openPanel}/><ClickCard label="Part Checklist" value="Pick & Deliver" text="See parts, quantities, part numbers, and locations." panel="requests" onOpen={openPanel}/><ClickCard label="Parts & Locations" value="Reference" text="Review material information before picking." panel="inventory" onOpen={openPanel}/><ClickCard label="Production Plan" value="Read Only" text="Review upcoming production demand." panel="schedule" onOpen={openPanel}/></section>}
-      {isSpecialist&&<section className="dashboardGrid"><ClickCard label="Yard Boom Lifts" value="Reconditioning" text="See exact boom-lift backlog, completed green tags, and units waiting on material." panel="yard" onOpen={openPanel}/><ClickCard label="Production Goals" value="Live Progress" text="Track today’s green tag goal and units waiting on material." panel="goals" onOpen={openPanel}/><ClickCard label="Live Requests" value="Boom Support" text="Monitor boom delivery activity." panel="requests" onOpen={openPanel}/><ClickCard label="Model & Parts" value="Manage" text="Maintain boom part information." panel="inventory" onOpen={openPanel}/></section>}
+      {isHandler&&<section className="dashboardGrid"><ClickCard label="Assigned Requests" value={isGreg?'Boom Queue':isTristen?'Hood Queue':'My Queue'} text="Accept assigned material requests and work them in priority order." panel="requests" onOpen={openPanel}/><ClickCard label="Part Checklist" value="Pick & Deliver" text="See parts, quantities, part numbers, and locations." panel="requests" onOpen={openPanel}/><ClickCard label="Live Inventory" value={isTristen?'Hood Stock':'Parts & Stock'} text="Update incoming, outgoing, reserved, and on-hand material." panel="inventory" onOpen={openPanel}/><ClickCard label="Production Plan" value="Read Only" text="Review upcoming production demand." panel="schedule" onOpen={openPanel}/></section>}
+      {isSpecialist&&<section className="dashboardGrid"><ClickCard label="Yard Boom Lifts" value="Reconditioning" text="See exact boom-lift backlog, completed green tags, and units waiting on material." panel="yard" onOpen={openPanel}/><ClickCard label="Production Goals" value="Live Progress" text="Track today’s green tag goal and units waiting on material." panel="goals" onOpen={openPanel}/><ClickCard label="Live Requests" value="Boom Support" text="Monitor boom delivery activity." panel="requests" onOpen={openPanel}/><ClickCard label="Live Inventory" value="Boom Stock" text="Maintain boom inventory, movement, locations, and shortages." panel="inventory" onOpen={openPanel}/></section>}
     </>}
     {canViewGoals&&<ProductionGoals user={user}/>} 
     {canViewYard&&<YardReconditioning user={user}/>} 
     <div id="requests"><MaterialRequestFlow user={user}/></div>
+    {canViewParts&&<LiveInventory user={user}/>} 
     {canViewParts&&<div id="parts"><ModelPartsSetup user={user}/></div>}
     {activePanel==='schedule'&&canViewSchedule&&<section id="dashboard-tool-panel" className="sectionBlock dashboardToolPanel"><div className="toolPanelHeader"><div><p className="eyebrow">Production</p><h2>Production Schedule</h2></div><button className="secondaryButton" onClick={()=>setActivePanel(null)}>Close</button></div><ProductionSchedule/></section>}
   </main>;
