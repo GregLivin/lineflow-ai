@@ -23,11 +23,11 @@ export default function Home() {
         </div>
 
         <div className="operationsStatusRow" style={{ marginTop: 14 }}>
-          <span className="systemMeta">Material flow · inventory · planning · delivery</span>
+          <span className="systemMeta">Production Visibility · Material Flow · Inventory · Delivery</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginTop: 12 }}>
-          <p className="heroCopy compactHeroCopy" style={{ margin: 0, fontSize: '1rem', lineHeight: 1.45, maxWidth: 690 }}>Material requests, production planning, inventory visibility, and delivery across all four assembly lines.</p>
+          <p className="heroCopy compactHeroCopy" style={{ margin: 0, fontSize: '1rem', lineHeight: 1.45, maxWidth: 760 }}>Real-time visibility and coordination for material movement, inventory, and production support across all four assembly lines.</p>
           <div className="actions homeActions" style={{ margin: 0 }}>
             <Link className="primaryButton linkButton" href="/login">Sign In</Link>
           </div>
