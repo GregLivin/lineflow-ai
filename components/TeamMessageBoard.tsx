@@ -18,12 +18,7 @@ export default function TeamMessageBoard({ user }: { user?: DemoUser | null }) {
   const [showEditor, setShowEditor] = useState(false);
 
   const roleText = currentUser?.role?.toLowerCase() ?? '';
-  const canPost = !!currentUser && (
-    currentUser.group === 'supervisor' ||
-    roleText.includes('supervisor') ||
-    roleText.includes('planner')
-  );
-
+  const canPost = !!currentUser && (currentUser.group === 'supervisor' || roleText.includes('supervisor') || roleText.includes('planner'));
   const today = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
   const latest = messages[0] ?? null;
 
@@ -44,54 +39,28 @@ export default function TeamMessageBoard({ user }: { user?: DemoUser | null }) {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  function startCreate() {
-    if (!canPost) return;
-    setEditingId(null);
-    setCategory('General');
-    setTitle('');
-    setMessage('');
-    setStatus('');
-    setShowEditor(true);
-  }
-
-  function startEdit(item: TeamMessage) {
-    if (!canPost) return;
-    setEditingId(item.id);
-    setCategory(item.category);
-    setTitle(item.title);
-    setMessage(item.message);
-    setStatus('');
-    setShowEditor(true);
-  }
+  function startCreate() { if (!canPost) return; setEditingId(null); setCategory('General'); setTitle(''); setMessage(''); setStatus(''); setShowEditor(true); }
+  function startEdit(item: TeamMessage) { if (!canPost) return; setEditingId(item.id); setCategory(item.category); setTitle(item.title); setMessage(item.message); setStatus(''); setShowEditor(true); }
 
   async function saveMessage(event: FormEvent) {
     event.preventDefault();
     if (!canPost || !currentUser || !title.trim() || !message.trim()) return;
     setStatus(editingId ? 'Saving...' : 'Posting...');
-
     const payload = { category, title:title.trim(), message:message.trim(), created_by:currentUser.name, message_date:today, active:true };
-    const result = editingId
-      ? await supabase.from('team_messages').update(payload).eq('id', editingId)
-      : await supabase.from('team_messages').insert(payload);
-
+    const result = editingId ? await supabase.from('team_messages').update(payload).eq('id', editingId) : await supabase.from('team_messages').insert(payload);
     if (result.error) { setStatus(editingId ? 'Message could not be updated.' : 'Message could not be posted.'); return; }
     setStatus(editingId ? 'Daily message updated.' : 'Message posted to the team homepage.');
-    setEditingId(null);
-    setShowEditor(false);
-    setTitle('');
-    setMessage('');
-    await loadMessages();
+    setEditingId(null); setShowEditor(false); setTitle(''); setMessage(''); await loadMessages();
   }
 
-  async function archiveMessage(id:string) {
-    if (!canPost) return;
-    await supabase.from('team_messages').update({ active:false }).eq('id', id);
-    await loadMessages();
-  }
+  async function archiveMessage(id:string) { if (!canPost) return; await supabase.from('team_messages').update({ active:false }).eq('id', id); await loadMessages(); }
 
-  return <section className="sectionBlock teamMessageBoard">
-    <div className="sectionHeading" style={{display:'flex',justifyContent:'space-between',gap:16,alignItems:'flex-start',flexWrap:'wrap'}}>
-      <div><p className="eyebrow">Daily Team Message</p><h2>Safety, Goals & Important Updates</h2><p className="dashboardRole">Daily messages for the whole team before sign-in.</p></div>
+  return <section className="sectionBlock teamMessageBoard" style={{padding:'16px 20px'}}>
+    <div className="sectionHeading" style={{display:'flex',justifyContent:'space-between',gap:12,alignItems:'center',flexWrap:'wrap',marginBottom: latest ? 12 : 6}}>
+      <div>
+        <p className="eyebrow" style={{marginBottom:4}}>Daily Team Message</p>
+        <h2 style={{fontSize:'clamp(1.35rem,4vw,2rem)',margin:0}}>Safety, Goals & Updates</h2>
+      </div>
       {canPost && <button className="primaryButton" type="button" onClick={() => latest ? startEdit(latest) : startCreate()}>{latest ? 'Create / Edit Message' : 'Create Message'}</button>}
     </div>
 
@@ -109,7 +78,11 @@ export default function TeamMessageBoard({ user }: { user?: DemoUser | null }) {
     </form>}
 
     <div className="teamMessageList">
-      {loading ? <p className="dashboardRole">Loading team messages...</p> : messages.length===0 ? <article className="teamMessageCard"><span className="teamMessageBadge">General</span><h3>No daily message posted yet.</h3><p>Supervisor or planner updates will appear here.</p></article> : messages.map((item,index) => <article className="teamMessageCard" key={item.id}><div className="teamMessageTop"><span className={`teamMessageBadge teamMessage${item.category}`}>{item.category}</span><span className="teamMessageDate">{new Date(`${item.message_date}T12:00:00`).toLocaleDateString([], {month:'short',day:'numeric'})}</span></div><h3>{item.title}</h3><p>{item.message}</p><div className="teamMessageFooter"><span>Posted by {item.created_by}</span>{canPost && <div style={{display:'flex',gap:8}}>{index===0&&<button type="button" className="secondaryButton" onClick={()=>startEdit(item)}>Edit</button>}<button type="button" className="messageArchiveButton" onClick={()=>archiveMessage(item.id)}>Archive</button></div>}</div></article>)}
+      {loading ? <p className="dashboardRole" style={{margin:'6px 0 0'}}>Loading team message...</p> : messages.length===0 ?
+        <article className="teamMessageCard" style={{padding:'10px 0 0',background:'transparent',border:0}}>
+          <p style={{margin:0,color:'var(--muted)'}}>No message posted for today. <span style={{color:'var(--text)'}}>Supervisor/Planner updates will appear here.</span></p>
+        </article> :
+        messages.map((item,index) => <article className="teamMessageCard" key={item.id}><div className="teamMessageTop"><span className={`teamMessageBadge teamMessage${item.category}`}>{item.category}</span><span className="teamMessageDate">{new Date(`${item.message_date}T12:00:00`).toLocaleDateString([], {month:'short',day:'numeric'})}</span></div><h3>{item.title}</h3><p>{item.message}</p><div className="teamMessageFooter"><span>Posted by {item.created_by}</span>{canPost && <div style={{display:'flex',gap:8}}>{index===0&&<button type="button" className="secondaryButton" onClick={()=>startEdit(item)}>Edit</button>}<button type="button" className="messageArchiveButton" onClick={()=>archiveMessage(item.id)}>Archive</button></div>}</div></article>)}
     </div>
   </section>;
 }
