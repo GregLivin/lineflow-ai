@@ -48,7 +48,7 @@ export default function Home() {
       <ProductionSchedule />
 
       <div className="demoAccessFooter">
-        <strong>Demo:</strong> Use the user's name as the username to open their role — <strong>tammy, chance, debbie, jose, greg, tristen</strong> · Lines: <strong>line1–line4</strong> · Password: <strong>12345</strong> for all users
+        <strong>Demo usernames:</strong> leadership · supervisor · planner · boomspecialist · boomhandler · hoodhandler · line1–line4 &nbsp;|&nbsp; Password: <strong>12345</strong>
       </div>
     </main>
   );
