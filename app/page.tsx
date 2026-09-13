@@ -4,10 +4,10 @@ import ProductionSchedule from '../components/ProductionSchedule';
 import TeamMessageBoard from '../components/TeamMessageBoard';
 
 const roles = [
-  { title: 'Line User', text: 'Request material and track delivery.', href: '/login?role=line' },
-  { title: 'Material Handler', text: 'Accept, pick up, and deliver assigned requests.', href: '/login?role=handler' },
-  { title: 'Supervisor / Planner', text: 'Monitor requests, inventory, yard operations, and goals.', href: '/login?role=supervisor' },
-  { title: 'Boom Material Specialist', text: 'Manage boom material readiness and production support.', href: '/login?role=specialist' },
+  { title: 'Line User', text: 'Requests material from the production line and tracks it through delivery.' },
+  { title: 'Material Handler', text: 'Receives assigned requests, locates material, and completes deliveries.' },
+  { title: 'Supervisor / Planner', text: 'Monitors requests, inventory, yard activity, production goals, and team updates.' },
+  { title: 'Boom Material Specialist', text: 'Monitors boom material readiness, shortages, and production support.' },
 ];
 
 export default function Home() {
@@ -28,18 +28,26 @@ export default function Home() {
 
       <section className="sectionBlock quickGuideBlock">
         <div className="sectionHeading">
-          <div><p className="eyebrow">Quick User Guide</p><h2>Choose your role</h2><p>Use the role that matches your job to open the correct LineFlow login.</p></div>
-          <Link className="secondaryButton linkButton" href="/guide">View Full User Guide →</Link>
+          <div>
+            <p className="eyebrow">How LineFlow Works</p>
+            <h2>One system. Role-based access.</h2>
+            <p>Every team member signs in through LineFlow. The tools, information, and controls they see are based on their assigned position.</p>
+          </div>
         </div>
-        <div className="quickGuideGrid">
+
+        <div className="quickGuideGrid roleOverviewGrid">
           {roles.map(role => (
-            <Link className="quickGuideCard" href={role.href} key={role.title}>
-              <div><h3>{role.title}</h3><p>{role.text}</p></div>
-              <span className="quickGuideAction">Sign In →</span>
-            </Link>
+            <article className="quickGuideCard roleOverviewCard" key={role.title}>
+              <h3>{role.title}</h3>
+              <p>{role.text}</p>
+            </article>
           ))}
         </div>
-        <div className="compactFlow"><span className="eyebrow">How LineFlow Works</span><strong>Request → Accept → Pick Up → Deliver → Confirm</strong></div>
+
+        <div className="compactFlow">
+          <span className="eyebrow">Material Flow</span>
+          <strong>Request → Accept → Pick Up → Deliver → Confirm</strong>
+        </div>
       </section>
     </main>
   );
