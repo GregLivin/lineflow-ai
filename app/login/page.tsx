@@ -41,7 +41,7 @@ export default function LoginPage() {
     event.preventDefault();
     const key = username.trim().toLowerCase().replace(/\s+/g, '');
     const user = users[key];
-    if (!user || !password) { setError('Invalid username or password.'); return; }
+    if (!user || password !== 'demo') { setError('Invalid demo username or password.'); return; }
     if (selectedRole && user.group !== selectedRole) {
       setError('This account does not have access to the selected role. Return home and choose the correct role.');
       return;
@@ -53,14 +53,15 @@ export default function LoginPage() {
   return (
     <main className="shell authShell">
       <section className="authCard">
-        <div className="brandRow"><div className="logoMark">LF</div><div><p className="eyebrow">LineFlow AI</p><h1 className="authTitle">{selectedRoleInfo?.title || 'Sign In'}</h1></div></div>
-        <p className="authCopy">{selectedRoleInfo?.subtitle || 'Enter your assigned LineFlow username and password to continue.'}</p>
+        <div className="brandRow"><div className="logoMark">LF</div><div><p className="eyebrow">LineFlow AI · Demo</p><h1 className="authTitle">{selectedRoleInfo?.title || 'Sign In'}</h1></div></div>
+        <p className="authCopy">{selectedRoleInfo?.subtitle || 'Enter a demo username and the shared demo password to continue.'}</p>
         <form className="loginForm" onSubmit={handleSubmit}>
-          <label>Username<input autoComplete="username" value={username} onChange={e => { setUsername(e.target.value); setError(''); }} placeholder="Enter username" /></label>
-          <label>Password<input type="password" autoComplete="current-password" value={password} onChange={e => { setPassword(e.target.value); setError(''); }} placeholder="Enter password" /></label>
+          <label>Username<input autoComplete="username" value={username} onChange={e => { setUsername(e.target.value); setError(''); }} placeholder="Enter demo username" /></label>
+          <label>Password<input type="password" autoComplete="current-password" value={password} onChange={e => { setPassword(e.target.value); setError(''); }} placeholder="demo" /></label>
           {error ? <p className="formError">{error}</p> : null}
           <button className="primaryButton fullButton" type="submit">Sign In</button>
         </form>
+        <p className="authCopy" style={{marginTop:12}}>Demo password for all accounts: <strong>demo</strong></p>
         <div className="actions"><button className="secondaryButton fullButton" type="button" onClick={() => router.push('/')}>Back to Home</button></div>
       </section>
     </main>
