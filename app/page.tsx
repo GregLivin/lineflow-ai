@@ -34,9 +34,6 @@ export default function Home() {
         </div>
       </section>
 
-      <TeamMessageBoard />
-      <ProductionSchedule />
-
       <section className="sectionBlock quickGuideBlock" style={{ padding: '16px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
           <p className="eyebrow" style={{ margin: 0 }}>How LineFlow Works</p>
@@ -56,6 +53,9 @@ export default function Home() {
           <strong style={{ fontSize: '.92rem' }}>Request → Accept → Deliver</strong>
         </div>
       </section>
+
+      <TeamMessageBoard />
+      <ProductionSchedule />
     </main>
   );
 }
