@@ -37,6 +37,10 @@ export default function LiveInventory({user}:{user:DemoUser}){
   const [movementQty,setMovementQty]=useState<Record<string,number>>({});
   const [savingId,setSavingId]=useState<string|null>(null);
 
+  async function syncReservations(){
+    await supabase.rpc('sync_inventory_reservations');
+  }
+
   async function load(){
     let query=supabase.from('inventory').select('*').order('material_type').order('material_name');
     if(isTristen) query=query.eq('material_type','Hood');
@@ -57,9 +61,10 @@ export default function LiveInventory({user}:{user:DemoUser}){
   const visible=useMemo(()=>items.filter(item=>filter==='All'||item.material_type===filter),[items,filter]);
   const totals=useMemo(()=>{
     const available=items.reduce((sum,item)=>sum+Math.max(0,item.on_hand-item.reserved),0);
+    const reserved=items.reduce((sum,item)=>sum+item.reserved,0);
     const low=items.filter(item=>(item.on_hand-item.reserved)<=item.low_stock_threshold).length;
     const incoming=items.reduce((sum,item)=>sum+item.in_transit,0);
-    return {available,low,incoming,items:items.length};
+    return {available,reserved,low,incoming,items:items.length};
   },[items]);
 
   function updateLocal(id:string,field:keyof InventoryItem,value:string|number){
@@ -82,8 +87,9 @@ export default function LiveInventory({user}:{user:DemoUser}){
       updated_at:new Date().toISOString()
     });
     if(error){setMessage('Inventory item could not be added.');return;}
+    await syncReservations();
     setName('');setPartNumber('');setLocation('');setOnHand(0);setThreshold(1);
-    setMessage('Inventory item added.');
+    setMessage('Inventory item added and open material requests were checked automatically.');
     await load();
   }
 
@@ -97,20 +103,21 @@ export default function LiveInventory({user}:{user:DemoUser}){
       part_number:item.part_number?.trim()||null,
       location:item.location.trim(),
       on_hand:Math.max(0,Number(item.on_hand)||0),
-      reserved:Math.max(0,Number(item.reserved)||0),
       in_transit:Math.max(0,Number(item.in_transit)||0),
       low_stock_threshold:Math.max(0,Number(item.low_stock_threshold)||0),
       updated_at:new Date().toISOString()
     }).eq('id',item.id);
+    if(!error)await syncReservations();
     setSavingId(null);
-    setMessage(error?'Inventory item could not be saved.':`${item.material_name} updated.`);
+    setMessage(error?'Inventory item could not be saved.':`${item.material_name} updated and reservations recalculated.`);
     if(!error)await load();
   }
 
   async function recordMovement(item:InventoryItem,type:MovementType){
     if(!canManage)return;
     const qty=Math.max(1,Number(movementQty[item.id])||1);
-    if(type==='Outgoing'&&qty>item.on_hand){setMessage(`Not enough ${item.material_name} on hand.`);return;}
+    const available=Math.max(0,item.on_hand-item.reserved);
+    if(type==='Outgoing'&&qty>available){setMessage(`${item.material_name} has only ${available} unreserved units available. Reserved stock is protected for active requests.`);return;}
     const nextOnHand=type==='Incoming'?item.on_hand+qty:item.on_hand-qty;
     setSavingId(item.id);
     const {error:updateError}=await supabase.from('inventory').update({on_hand:nextOnHand,updated_at:new Date().toISOString()}).eq('id',item.id);
@@ -125,9 +132,10 @@ export default function LiveInventory({user}:{user:DemoUser}){
       notes:`${type} inventory update from LineFlow Live Inventory`,
       created_at:new Date().toISOString()
     });
+    await syncReservations();
     setSavingId(null);
     setMovementQty(current=>({...current,[item.id]:1}));
-    setMessage(movementError?`${type} count updated, but movement history could not be recorded.`:`${type} ${qty} ${item.material_name}.`);
+    setMessage(movementError?`${type} count updated, but movement history could not be recorded.`:`${type} ${qty} ${item.material_name}. Reservations recalculated automatically.`);
     await load();
   }
 
@@ -136,8 +144,8 @@ export default function LiveInventory({user}:{user:DemoUser}){
   return <section className="sectionBlock" id="live-inventory">
     <div className="requestFlowHeader"><div>
       <p className="eyebrow">Live Inventory</p>
-      <h2>Material Stock & Movement</h2>
-      <p className="dashboardRole">Update on-hand material, incoming stock, reserved quantities, locations, and low-stock thresholds. Recovery AI uses this live data to determine which machines are actually ready to complete.</p>
+      <h2>Material Stock, Reservations & Movement</h2>
+      <p className="dashboardRole">LineFlow automatically reserves available stock for open material requests. Reserved quantities cannot be manually assigned elsewhere, helping Recovery AI avoid counting the same material for multiple machines.</p>
     </div></div>
 
     {message&&<p className="requestMessage">{message}</p>}
@@ -145,7 +153,8 @@ export default function LiveInventory({user}:{user:DemoUser}){
     <div className="dashboardGrid supervisorCoreGrid">
       <article className="metricCard"><span>Inventory Items</span><strong>{loading?'—':totals.items}</strong><p>Tracked material records.</p></article>
       <article className="metricCard"><span>Available Units</span><strong>{loading?'—':totals.available}</strong><p>On hand minus reserved.</p></article>
-      <article className="metricCard"><span>Low Stock</span><strong>{loading?'—':totals.low}</strong><p>Items at or below threshold.</p></article>
+      <article className="metricCard"><span>Reserved Units</span><strong>{loading?'—':totals.reserved}</strong><p>Automatically protected for active requests.</p></article>
+      <article className="metricCard"><span>Low Stock</span><strong>{loading?'—':totals.low}</strong><p>Items at or below threshold after reservations.</p></article>
       <article className="metricCard"><span>In Transit</span><strong>{loading?'—':totals.incoming}</strong><p>Material expected to arrive.</p></article>
     </div>
 
@@ -155,9 +164,9 @@ export default function LiveInventory({user}:{user:DemoUser}){
 
     <div className="modelPartsTableWrap">
       <table className="modelPartsTable">
-        <thead><tr><th>Material</th><th>Part #</th><th>Type</th><th>Location</th><th>On Hand</th><th>Reserved</th><th>In Transit</th><th>Low At</th><th>Move Qty</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Material</th><th>Part #</th><th>Type</th><th>Location</th><th>On Hand</th><th>Reserved</th><th>Available</th><th>In Transit</th><th>Low At</th><th>Move Qty</th><th>Actions</th></tr></thead>
         <tbody>
-          {loading?<tr><td colSpan={10}>Loading live inventory...</td></tr>:visible.length===0?<tr><td colSpan={10}>No inventory has been entered yet.</td></tr>:visible.map(item=>{
+          {loading?<tr><td colSpan={11}>Loading live inventory...</td></tr>:visible.length===0?<tr><td colSpan={11}>No inventory has been entered yet.</td></tr>:visible.map(item=>{
             const available=Math.max(0,item.on_hand-item.reserved);
             const low=available<=item.low_stock_threshold;
             return <tr key={item.id}>
@@ -166,13 +175,14 @@ export default function LiveInventory({user}:{user:DemoUser}){
               <td>{isTristen?<span>Hood</span>:<select value={item.material_type} onChange={e=>updateLocal(item.id,'material_type',e.target.value)}><option>Boom</option><option>Hood</option></select>}</td>
               <td><input list="inventory-location-options" value={item.location} onChange={e=>updateLocal(item.id,'location',e.target.value)}/></td>
               <td><input type="number" min="0" value={item.on_hand} onChange={e=>updateLocal(item.id,'on_hand',Number(e.target.value)||0)}/></td>
-              <td><input type="number" min="0" value={item.reserved} onChange={e=>updateLocal(item.id,'reserved',Number(e.target.value)||0)}/></td>
+              <td><strong>{item.reserved}</strong><small className="cardAction"> Auto</small></td>
+              <td><strong>{available}</strong></td>
               <td><input type="number" min="0" value={item.in_transit} onChange={e=>updateLocal(item.id,'in_transit',Number(e.target.value)||0)}/></td>
               <td><input type="number" min="0" value={item.low_stock_threshold} onChange={e=>updateLocal(item.id,'low_stock_threshold',Number(e.target.value)||0)}/></td>
               <td><input type="number" min="1" value={movementQty[item.id]??1} onChange={e=>setMovementQty(current=>({...current,[item.id]:Math.max(1,Number(e.target.value)||1)}))}/></td>
               <td className="modelPartActions">
                 <button className="secondaryButton" disabled={savingId===item.id} onClick={()=>recordMovement(item,'Incoming')}>+ Incoming</button>
-                <button className="secondaryButton" disabled={savingId===item.id} onClick={()=>recordMovement(item,'Outgoing')}>− Outgoing</button>
+                <button className="secondaryButton" disabled={savingId===item.id||available===0} onClick={()=>recordMovement(item,'Outgoing')}>− Outgoing</button>
                 <button className="secondaryButton" disabled={savingId===item.id} onClick={()=>saveItem(item)}>{savingId===item.id?'Saving...':'Save'}</button>
               </td>
             </tr>;
