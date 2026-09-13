@@ -22,8 +22,7 @@ export default function Home() {
           <LiveClock />
         </div>
 
-        <div className="operationsStatusRow" style={{ marginTop: 14, gap: '8px 14px' }}>
-          <div className="statusStrip" style={{ padding: '7px 11px' }}><span className="statusDot" /><span>Production System Online</span></div>
+        <div className="operationsStatusRow" style={{ marginTop: 14 }}>
           <span className="systemMeta">Material flow · inventory · planning · delivery</span>
         </div>
 
