@@ -3,17 +3,19 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const users: Record<string, { name: string; role: string; group: string }> = {
-  greg: { name: 'Greg', role: 'Boom Material Handler / Combi Lift', group: 'handler' },
-  tristen: { name: 'Tristen', role: 'Hood Material Handler / Forklift', group: 'handler' },
-  debbie: { name: 'Debbie', role: 'Planner / System Administrator', group: 'supervisor' },
-  tammy: { name: 'Tammy', role: 'Operations Leadership / System Administrator', group: 'supervisor' },
-  chance: { name: 'Chance', role: 'Houston Supervisor / System Administrator', group: 'supervisor' },
-  jose: { name: 'Jose', role: 'Boom Line Material Specialist', group: 'specialist' },
-  line1: { name: 'Line 1', role: 'Assembly Line User', group: 'line' },
-  line2: { name: 'Line 2', role: 'Assembly Line User', group: 'line' },
-  line3: { name: 'Line 3', role: 'Assembly Line User', group: 'line' },
-  line4: { name: 'Line 4', role: 'Assembly Line User', group: 'line' },
+type DemoAccount = { name: string; role: string; group: string; internalUsername: string };
+
+const users: Record<string, DemoAccount> = {
+  leadership: { name: 'Operations Leadership', role: 'Operations Leadership / System Administrator', group: 'supervisor', internalUsername: 'tammy' },
+  supervisor: { name: 'Houston Supervisor', role: 'Houston Supervisor / System Administrator', group: 'supervisor', internalUsername: 'chance' },
+  planner: { name: 'Planner', role: 'Planner / System Administrator', group: 'supervisor', internalUsername: 'debbie' },
+  boomspecialist: { name: 'Boom Line Material Specialist', role: 'Boom Line Material Specialist', group: 'specialist', internalUsername: 'jose' },
+  boomhandler: { name: 'Boom Material Handler', role: 'Boom Material Handler / Combi Lift', group: 'handler', internalUsername: 'greg' },
+  hoodhandler: { name: 'Hood Material Handler', role: 'Hood Material Handler / Forklift', group: 'handler', internalUsername: 'tristen' },
+  line1: { name: 'Line 1', role: 'Assembly Line User', group: 'line', internalUsername: 'line1' },
+  line2: { name: 'Line 2', role: 'Assembly Line User', group: 'line', internalUsername: 'line2' },
+  line3: { name: 'Line 3', role: 'Assembly Line User', group: 'line', internalUsername: 'line3' },
+  line4: { name: 'Line 4', role: 'Assembly Line User', group: 'line', internalUsername: 'line4' },
 };
 
 const roleInfo: Record<string, { title: string; subtitle: string }> = {
@@ -43,10 +45,10 @@ export default function LoginPage() {
     const user = users[key];
     if (!user || password !== '12345') { setError('Invalid demo username or password.'); return; }
     if (selectedRole && user.group !== selectedRole) {
-      setError('This account does not have access to the selected role. Return home and choose the correct role.');
+      setError('This account does not have access to the selected role.');
       return;
     }
-    localStorage.setItem('lineflowUser', JSON.stringify({ ...user, username: key }));
+    localStorage.setItem('lineflowUser', JSON.stringify({ name: user.name, role: user.role, group: user.group, username: user.internalUsername }));
     router.push('/dashboard');
   }
 
@@ -54,9 +56,9 @@ export default function LoginPage() {
     <main className="shell authShell">
       <section className="authCard">
         <div className="brandRow"><div className="logoMark">LF</div><div><p className="eyebrow">LineFlow AI · Demo</p><h1 className="authTitle">{selectedRoleInfo?.title || 'Sign In'}</h1></div></div>
-        <p className="authCopy">{selectedRoleInfo?.subtitle || 'Enter a demo username and the shared demo password to continue.'}</p>
+        <p className="authCopy">{selectedRoleInfo?.subtitle || 'Enter a role-based demo username and the shared password to continue.'}</p>
         <form className="loginForm" onSubmit={handleSubmit}>
-          <label>Username<input autoComplete="username" value={username} onChange={e => { setUsername(e.target.value); setError(''); }} placeholder="Enter demo username" /></label>
+          <label>Username<input autoComplete="username" value={username} onChange={e => { setUsername(e.target.value); setError(''); }} placeholder="Enter role username" /></label>
           <label>Password<input type="password" autoComplete="current-password" value={password} onChange={e => { setPassword(e.target.value); setError(''); }} placeholder="12345" /></label>
           {error ? <p className="formError">{error}</p> : null}
           <button className="primaryButton fullButton" type="submit">Sign In</button>
