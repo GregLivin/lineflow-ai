@@ -46,7 +46,7 @@ export default function Home() {
 
         <div className="compactFlow">
           <span className="eyebrow">Material Flow</span>
-          <strong>Request → Accept → Pick Up → Deliver → Confirm</strong>
+          <strong>Request → Accept → Deliver</strong>
         </div>
       </section>
     </main>
