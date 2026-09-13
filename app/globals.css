@@ -161,6 +161,51 @@ h3 { margin-bottom: 10px; }
 .flowBlock h2 { max-width: 850px; }
 .installCard { background: linear-gradient(135deg, rgba(56, 189, 248, 0.13), rgba(34, 197, 94, 0.08)); }
 
+.metricCardButton {
+  width: 100%;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+.metricCardButton:hover,
+.metricCardButton:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.5);
+  background: #192b43;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.18);
+  outline: none;
+}
+.metricCardButton:active { transform: translateY(0); }
+.cardAction {
+  display: inline-block;
+  margin-top: 14px;
+  color: #bae6fd;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.dashboardToolPanel {
+  scroll-margin-top: 18px;
+  border-color: rgba(56, 189, 248, 0.32);
+  background: linear-gradient(180deg, rgba(13, 31, 52, 0.98), rgba(8, 20, 35, 0.98));
+}
+.toolPanelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.toolActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+#requests,
+#parts { scroll-margin-top: 18px; }
+
 .scheduleSection { padding: 22px 22px 18px; }
 .scheduleHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 18px; }
 .scheduleHeader h2 { margin-bottom: 6px; }
@@ -267,9 +312,10 @@ h3 { margin-bottom: 10px; }
 }
 
 @media (max-width: 760px) {
-  .heroTopRow, .scheduleHeader, .requestFlowHeader { flex-direction: column; }
+  .heroTopRow, .scheduleHeader, .requestFlowHeader, .toolPanelHeader { flex-direction: column; }
   .liveClock { width: 100%; text-align: left; min-width: 0; }
   .liveRequestIndicator { width: 100%; justify-content: center; }
+  .toolPanelHeader .secondaryButton { width: 100%; }
 }
 
 @media (max-width: 680px) {
@@ -277,8 +323,8 @@ h3 { margin-bottom: 10px; }
   .hero, .sectionBlock, .installCard, .authCard, .dashboardHeader { border-radius: 20px; padding: 20px; }
   .roleGrid, .dashboardGrid, .requestFormGrid, .requestSubmitRow { grid-template-columns: 1fr; }
   .requestSubmitRow button { grid-column: auto; }
-  .actions, .scheduleActions { flex-direction: column; width: 100%; }
-  .primaryButton, .secondaryButton, .linkButton, .scheduleActions button { width: 100%; }
+  .actions, .scheduleActions, .toolActions { flex-direction: column; width: 100%; }
+  .primaryButton, .secondaryButton, .linkButton, .scheduleActions button, .toolActions button { width: 100%; }
   .dashboardHeader { align-items: stretch; flex-direction: column; }
   .requestTypeButtons { grid-template-columns: 1fr; }
 }
