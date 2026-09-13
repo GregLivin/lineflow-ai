@@ -4,10 +4,10 @@ import ProductionSchedule from '../components/ProductionSchedule';
 import TeamMessageBoard from '../components/TeamMessageBoard';
 
 const roles = [
-  { title: 'Line User', text: 'Requests material from the production line and tracks it through delivery.' },
-  { title: 'Material Handler', text: 'Receives assigned requests, locates material, and completes deliveries.' },
-  { title: 'Supervisor / Planner', text: 'Monitors requests, inventory, yard activity, production goals, and team updates.' },
-  { title: 'Boom Material Specialist', text: 'Monitors boom material readiness, shortages, and production support.' },
+  { title: 'Line User', text: 'Request material and track delivery.' },
+  { title: 'Material Handler', text: 'Accept requests and deliver material.' },
+  { title: 'Supervisor / Planner', text: 'Monitor inventory, yard activity, and goals.' },
+  { title: 'Boom Material Specialist', text: 'Monitor boom material readiness and shortages.' },
 ];
 
 export default function Home() {
@@ -26,27 +26,25 @@ export default function Home() {
       <TeamMessageBoard />
       <ProductionSchedule />
 
-      <section className="sectionBlock quickGuideBlock">
-        <div className="sectionHeading">
-          <div>
-            <p className="eyebrow">How LineFlow Works</p>
-            <h2>One system. Role-based access.</h2>
-            <p>Every team member signs in through LineFlow. The tools, information, and controls they see are based on their assigned position.</p>
-          </div>
+      <section className="sectionBlock quickGuideBlock" style={{ padding: '16px 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
+          <p className="eyebrow" style={{ margin: 0 }}>How LineFlow Works</p>
+          <h2 style={{ fontSize: '1.35rem', margin: 0 }}>One system. Role-based access.</h2>
+          <p style={{ margin: 0, color: 'var(--muted)', fontSize: '.9rem' }}>Your position determines the tools and information you can access.</p>
         </div>
 
-        <div className="quickGuideGrid roleOverviewGrid">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 }}>
           {roles.map(role => (
-            <article className="quickGuideCard roleOverviewCard" key={role.title}>
-              <h3>{role.title}</h3>
-              <p>{role.text}</p>
+            <article key={role.title} style={{ padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 12, background: 'var(--panel-2)' }}>
+              <h3 style={{ margin: '0 0 4px', fontSize: '1rem' }}>{role.title}</h3>
+              <p style={{ margin: 0, color: 'var(--muted)', fontSize: '.82rem', lineHeight: 1.35 }}>{role.text}</p>
             </article>
           ))}
         </div>
 
-        <div className="compactFlow">
-          <span className="eyebrow">Material Flow</span>
-          <strong>Request → Accept → Deliver</strong>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
+          <span className="eyebrow" style={{ margin: 0 }}>Material Flow</span>
+          <strong style={{ fontSize: '.92rem' }}>Request → Accept → Deliver</strong>
         </div>
       </section>
     </main>
