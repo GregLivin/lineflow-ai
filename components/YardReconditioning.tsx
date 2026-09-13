@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 
 type User = { name: string; username: string; role: string };
 type Status = 'Needs Reconditioning' | 'In Progress' | 'Waiting on Material' | 'Completed / Green Tag' | 'Ready to Ship';
-type Unit = { id: string; unit_number: string; model: string; yard_location: string | null; status: Status; notes: string | null; updated_by: string | null; updated_at: string };
+type Unit = { id: string; unit_number: string; model: string; yard_location: string | null; status: Status; notes: string | null; updated_by: string | null; updated_at: string; completed_at: string | null };
 
 const statuses: Status[] = ['Needs Reconditioning','In Progress','Waiting on Material','Completed / Green Tag','Ready to Ship'];
 const models = ['600S','800S','1200SJP','1500SJ'];
@@ -47,21 +47,27 @@ export default function YardReconditioning({ user }: { user: User }) {
   async function addUnit(e: FormEvent) {
     e.preventDefault();
     if (!canManage || !unitNumber.trim()) return;
-    const { error } = await supabase.from('yard_reconditioning_units').insert({ unit_number: unitNumber.trim(), model, yard_location: location.trim() || null, status, notes: notes.trim() || null, updated_by: user.name });
+    const completedAt = status === 'Completed / Green Tag' || status === 'Ready to Ship' ? new Date().toISOString() : null;
+    const { error } = await supabase.from('yard_reconditioning_units').insert({ unit_number: unitNumber.trim(), model, yard_location: location.trim() || null, status, notes: notes.trim() || null, updated_by: user.name, completed_at: completedAt });
     if (error) { setMessage('Unit could not be added. Check that the unit number is unique.'); return; }
     setUnitNumber(''); setNotes(''); setMessage('Boom lift added to yard inventory.'); await load();
   }
 
   async function changeStatus(unit: Unit, next: Status) {
     if (!canManage) return;
-    await supabase.from('yard_reconditioning_units').update({ status: next, updated_by: user.name, updated_at: new Date().toISOString() }).eq('id', unit.id);
+    const now = new Date().toISOString();
+    const completedAt = next === 'Completed / Green Tag'
+      ? (unit.completed_at || now)
+      : next === 'Ready to Ship'
+        ? (unit.completed_at || now)
+        : null;
+    await supabase.from('yard_reconditioning_units').update({ status: next, completed_at: completedAt, updated_by: user.name, updated_at: now }).eq('id', unit.id);
     await load();
   }
 
   return (
     <section className="sectionBlock" id="yard-reconditioning">
       <div className="sectionHeading"><div><p className="eyebrow">Yard & Reconditioning Inventory</p><h2>Boom Lift Reconditioning Status</h2><p className="dashboardRole">Exact live counts of boom lifts in the yard, work remaining, completed green tags, and units ready to ship.</p></div></div>
-
       <div className="dashboardGrid">
         <div className="metricCard"><span>Total Units in Yard</span><strong>{counts.total}</strong><p>All tracked boom lifts currently in the yard system.</p></div>
         <div className="metricCard"><span>Needs Reconditioning</span><strong>{counts.needs}</strong><p>Units waiting for reconditioning to begin.</p></div>
@@ -70,9 +76,7 @@ export default function YardReconditioning({ user }: { user: User }) {
         <div className="metricCard"><span>Completed / Green Tag</span><strong>{counts.completed}</strong><p>Reconditioning completed.</p></div>
         <div className="metricCard"><span>Ready to Ship</span><strong>{counts.ready}</strong><p>Completed units cleared for shipment.</p></div>
       </div>
-
       <div className="sectionBlock" style={{ marginTop: 18 }}><p className="eyebrow">Backlog vs Goal</p><h3>{remaining} units remaining · {daysAtGoal} production days at 3 green tags/day</h3><p className="dashboardRole">This estimate updates automatically as unit statuses change.</p></div>
-
       {canManage && <form className="addModelPartForm" onSubmit={addUnit}>
         <div><p className="eyebrow">Add Yard Unit</p><h3>Register a boom lift</h3></div>
         <div className="requestFormGrid">
@@ -84,7 +88,6 @@ export default function YardReconditioning({ user }: { user: User }) {
         <label className="notesLabel">Notes<textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Material needs, condition, hold reason, or other notes" /></label>
         <button className="primaryButton" type="submit">Add Boom Lift</button>{message && <p className="requestMessage">{message}</p>}
       </form>}
-
       <div className="modelPartsTableWrap" style={{ marginTop: 20 }}><table className="modelPartsTable"><thead><tr><th>Unit</th><th>Model</th><th>Location</th><th>Status</th><th>Notes</th><th>Updated By</th></tr></thead><tbody>
         {units.length === 0 ? <tr><td colSpan={6}>No boom lifts entered yet. Add the yard units to begin tracking exact counts.</td></tr> : units.map(unit => <tr key={unit.id}>
           <td><strong>{unit.unit_number}</strong></td><td>{unit.model}</td><td>{unit.yard_location || '—'}</td>
