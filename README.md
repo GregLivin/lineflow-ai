@@ -1,36 +1,41 @@
 # LineFlow AI
 
-LineFlow AI is a live material ordering, delivery, inventory, production-planning, and production-flow system for four assembly lines.
+LineFlow AI is a production operations and material-flow platform for assembly-line support, inventory visibility, material delivery, production planning, and reconditioning recovery.
 
 ## Live Demo
 
 **https://lineflow-ai.vercel.app**
 
-The application is deployed through Vercel and connected to a dedicated Supabase backend for shared operational data and realtime updates.
+The application is deployed through Vercel and connected to a dedicated Supabase PostgreSQL backend for shared operational data and realtime updates.
 
 ## Current Development Status
 
-LineFlow AI now includes:
+LineFlow AI currently includes:
 
 - Role-based demo login and dashboards
 - Live production schedule
-- Shared Supabase PostgreSQL database
-- Realtime production-schedule updates across devices
-- Production schedule editing for authorized operations roles
-- Database foundation for material requests, inventory, movements, alerts, and audit history
+- Live material request and delivery workflow
+- Machine/serial-linked production history
+- Live inventory and inventory movement tracking
+- Automatic inventory reservation for open material requests
+- Material delivery timestamps and per-part delivery confirmation
+- LineFlow Recovery AI / Reconditioning Production Intelligence
+- Reconditioning backlog, completion-time, and material-wait metrics
+- Shared Supabase PostgreSQL database and realtime updates
 - Remote leadership dashboard for Tammy
 - Houston operations dashboards for production personnel
 
-The next major phase is secure Supabase authentication and the live material-request/delivery workflow.
+The current system is a working development/pilot platform. Secure Supabase authentication and production-grade database authorization remain part of the security phase.
 
 ## How It Works
 
-1. Assembly-line users log in and request material.
-2. Requests automatically route to the responsible material handler based on material type.
-3. Handlers accept, pick up, transport, and deliver material.
-4. LineFlow tracks request and delivery timestamps, inventory quantity, and material location.
-5. Planners and Houston operations personnel manage the production schedule and material readiness.
-6. Leadership can monitor Houston operations remotely, including production plans, inventory, alerts, requests, goals, and performance.
+1. Assembly-line users select a model/machine and request required material.
+2. Boom requests route to Greg and hood requests route to Tristen.
+3. LineFlow checks live inventory and reserves matching material for open requests.
+4. Material handlers accept, pick up, transport, and deliver material.
+5. Individual parts are checked off as delivered and inventory is updated.
+6. Production schedules, machine serials, material history, and completion timestamps build production history.
+7. Supervisors and leadership use LineFlow Recovery AI to identify backlog, material constraints, completion performance, and recovery opportunities.
 
 ## Delivery Workflows
 
@@ -40,21 +45,19 @@ The next major phase is secure Supabase authentication and the live material-req
 
 ## Users & Roles
 
-- **Tammy** — Operations Leadership / System Administrator; top-level remote operations visibility and control from Pennsylvania
+- **Tammy** — Operations Leadership / System Administrator; remote operations visibility and production recovery oversight
 - **Chance** — Houston Supervisor / System Administrator
 - **Debbie** — Planner / System Administrator
-- **Jose** — Boom Line Material Specialist; oversees boom-line material readiness and can update the production schedule
+- **Jose** — Boom Line Material Specialist; boom-line material readiness and schedule support
 - **Greg** — Boom Material Handler / Combi Lift
 - **Tristen** — Hood Material Handler / Forklift
 - **Lines 1–4** — Assembly Line Users who place material requests and track delivery status
 
-Tammy has a dedicated **Houston Operations Overview** designed for remote leadership. Debbie, Tammy, Chance, and Jose can currently modify the shared production schedule.
+Tristen's operational view is restricted to hood material. Tammy has a focused leadership view containing the Daily Team Message, Production Schedule, LineFlow Recovery AI, and live inventory information.
 
 ## Live Production Schedule
 
-The home screen includes a shared production schedule backed by Supabase rather than browser-only storage. Authorized users can add, modify, and remove schedule rows.
-
-Current schedule fields include:
+The production schedule is backed by Supabase rather than browser-only storage. Authorized operations users can add and modify production information including:
 
 - Priority
 - Job
@@ -65,115 +68,187 @@ Current schedule fields include:
 - Completion target
 - Comments
 
-Production statuses can include **Planned, Start Today, Continue, In Progress, Complete Today, Hold,** and **Waiting on Material**.
+Schedule rows with serial numbers can be linked to machine production records. Machine status changes can capture production start, completion, and Green Tag timestamps for later analysis.
 
-Changes are stored centrally so the same schedule can be viewed across devices. Realtime database subscriptions allow connected users to receive schedule updates without relying on the same computer or browser.
+## LineFlow Recovery AI
 
-## Remote Leadership — Tammy
+**LineFlow Recovery AI — Reconditioning Production Intelligence** is designed to help operations reduce a large reconditioning backlog using actual production and material data.
 
-Tammy's dashboard provides a high-level view of Houston operations from Pennsylvania, including:
+Current Recovery AI metrics include:
 
-- Production schedule control
-- Assembly Lines 1–4
-- Material operations
-- Boom and hood workflows
-- Inventory visibility
-- Leadership alerts
-- Goals and performance
-- Workflow control
-- Audit history
+- Reconditioning backlog
+- Machines completed today
+- Average completion time
+- Average material wait
+- Machines at risk, delayed, or waiting on material
+- Live inventory readiness
+- Inventory-ready machines
+- Machines blocked by stock
+- Low-stock material
 
-The goal is to provide enough live operational visibility that leadership can understand plant status remotely without depending on manual status calls.
+The system does not fabricate predictions. Predictive and machine-learning recommendations are intended to activate only after enough reliable production history has been collected.
 
-## Supabase Backend
+### Backlog Recovery Strategy
 
-LineFlow AI has a dedicated **`lineflow-ai`** Supabase project with PostgreSQL and realtime capabilities.
+If operations are 40 or more machines behind, the system should do more than display the backlog. The recovery planner is intended to calculate the completion pace required to catch up while accounting for new incoming reconditioning work.
 
-Current database tables:
+A core planning formula is:
 
-- `users`
-- `production_schedule`
-- `material_requests`
-- `inventory`
-- `inventory_movements`
-- `alerts`
-- `activity_logs`
+**Required weekly completions = normal incoming machines per week + (current backlog ÷ desired recovery weeks)**
 
-Row Level Security (RLS) is enabled. Production-grade role policies and Supabase authentication are part of the security phase of development.
+Recovery AI can ultimately classify machines into operational groups such as:
 
-## Material Request Lifecycle
+- **Quick Win** — close to completion with required material available
+- **Material Ready** — required inventory is available/reserved
+- **Partially Ready** — some required material is available
+- **Blocked by Stock** — required material is unavailable
+- **Inventory Match Needed** — required part is not yet mapped to live inventory
+- **Long Cycle** — production history indicates a longer completion cycle
 
-The planned request workflow is:
+The goal is to create a pipeline where production finishes inventory-ready machines while material handlers stage the next machines and identify shortages before they stop production.
 
-**Requested → Accepted → Picked Up → In Transit → Delivered → Confirmed**
+## Machine Production Intelligence
 
-Each stage will store timestamps so LineFlow can calculate response time, pickup time, travel/delivery time, and total request-to-delivery time.
+LineFlow connects production schedule records, machine serials, material requests, individual delivered parts, and machine completion timestamps.
 
-## Inventory & Alerts
+For each machine, the data foundation can track:
 
-The inventory system is being designed to track:
+- Job
+- Model
+- Serial number
+- Production/reconditioning status
+- Start time
+- Completion time
+- Green Tag time
+- Materials requested
+- Materials delivered
+- Material request-to-delivery time
+- Total completion time
 
+This foundation supports daily production reporting and future analysis of which machines take longest to complete and which material delays contribute most to lost production time.
+
+## Live Inventory
+
+LineFlow currently has its own live inventory layer capable of tracking:
+
+- Material type
+- Material name
+- Part number
+- Storage/staging location
 - Quantity on hand
 - Reserved quantity
 - Available quantity
 - Material in transit
-- Storage/staging location
-- Low-stock and out-of-stock conditions
-- Shortages and overages
-- Damaged or incorrect material
-- Inventory discrepancies
-- Material readiness against the production plan
-- Reorder/safety-stock levels
-- Complete inventory movement history
+- Low-stock threshold
+- Incoming inventory movements
+- Outgoing inventory movements
+- Inventory movement history
+
+Available inventory is calculated from on-hand stock after reservations. Open material requests can reserve matching inventory so the same stock is not treated as available for multiple machines.
+
+When reserved material is delivered, LineFlow can consume the appropriate inventory quantity, release its reservation, and record the outgoing movement.
+
+## Existing Company Inventory / ERP Integration
+
+For a production deployment, LineFlow does **not** need to replace an existing company inventory, ERP, or warehouse-management system. The preferred architecture is to integrate with the company's approved system and use it as the inventory **source of truth**.
+
+Potential approved integration methods include:
+
+- REST/API integration
+- Read-only database or reporting connection
+- Scheduled CSV/Excel export/import
+- ERP/WMS reporting feed
+- Approved middleware or integration service
+
+The preferred first production integration is **read-only**: LineFlow reads approved inventory data without changing the company's official inventory records.
+
+An integration could map fields such as:
+
+- Part number
+- Material description
+- Quantity on hand
+- Allocated/reserved quantity
+- Available quantity
+- Storage location
+- Incoming material
+- Inventory transactions
+
+The flow would be:
+
+**Company Inventory / ERP → Approved Integration → LineFlow Live Inventory → Recovery AI**
+
+This prevents unnecessary duplicate data entry while allowing LineFlow to focus on production readiness, material flow, reconditioning recovery, and operational intelligence.
+
+The exact integration method must be determined after identifying the company's existing inventory/WMS/ERP platform and receiving appropriate technical access/approval.
+
+## Material Request Lifecycle
+
+The live request workflow is:
+
+**Requested → Accepted → Picked Up → In Transit → Delivered → Confirmed**
+
+Each stage stores timestamps so LineFlow can measure response time, pickup time, delivery time, and total request-to-delivery time.
+
+Required parts can also be tracked individually with quantity, part number, location, reservation status, and delivery status.
 
 ## Hood Storage
 
 Hood storage contains **31 hood rows plus 1 miscellaneous row**, for 32 logical rows. Hood styles that are alike may occupy one or multiple rows/sections with different quantities.
 
-The hood inventory module will map hood style, row/section, quantity, availability, and delivery activity to Tristen's forklift workflow.
+The hood inventory module is intended to map hood style, row/section, quantity, availability, and delivery activity to Tristen's forklift workflow.
 
 ## Boom Material
 
 Known boom material examples include:
 
 - Base Boom — `0801316`
-- Inner Mid — `0801317`
-- Outer Mid — `0801318`
+- Inner Mid / Big Mid — `0801317`
+- Outer Mid / Small Mid — `0801318`
 - Fly Boom — `0801319`
+- Telescope Cylinder — `1684178`
+- Lower Push Tube — `1180369`
+- Upper Push Tube — `1180370`
+- Power Track T/T — `1001131620`
+- Power Track Upper — `1001131720`
 
-Additional boom material includes telescope cylinders, push tubes, power tracks, and other production components. Boom inventory will connect locations and quantities to Greg's Combi Lift workflow and Jose's boom-line oversight.
+Boom material can be connected to model requirements, inventory quantities, locations, machine serials, material requests, Greg's Combi Lift workflow, and Jose's boom-line oversight.
 
-## Goals & Performance
+## Daily Reporting & Performance
 
-Leadership will be able to create and track weekly and monthly goals such as:
+The production data foundation is intended to generate daily reports showing:
 
-- Delivery response time
-- On-time delivery rate
-- Inventory accuracy
-- Shortages and stockouts
-- Damaged material
-- Production targets
-- Open material issues
+- Machines completed
+- Materials delivered for each machine
+- Completion time by machine
+- Longest machine completion
+- Material request and delivery times
+- Machines waiting on material
+- Inventory shortages
+- Daily Green Tag performance
+- Backlog movement
 
-Greg and Tristen will receive end-of-shift summaries covering deliveries completed, response/delivery time, on-time performance, trips, issues, and other relevant shift metrics.
+Performance reporting should distinguish material-handler delays from production delays, shortages, equipment delays, and production-plan changes.
 
-Performance reporting should distinguish material-handler delays from production delays, shortages, equipment delays, and supervisor/production-plan changes.
+## Supabase Backend
 
-## Planned Audit & Change Tracking
+LineFlow AI uses a dedicated Supabase PostgreSQL backend with realtime capabilities.
 
-Important operational changes will ultimately record:
+Core operational data includes:
 
-- Who made the change
-- What changed
-- Date and time
-- Reason for the change
-- Affected line/material/workflow
+- `production_schedule`
+- `machine_runs`
+- `material_requests`
+- `request_parts`
+- `model_parts`
+- `inventory`
+- `inventory_movements`
+- production intelligence views and supporting operational tables
 
-This includes schedule changes, inventory adjustments, routing changes, priorities, and other production-impacting actions.
+Row Level Security is enabled on relevant tables, but the current development/demo policies are intentionally permissive. Production deployment requires proper authenticated role-based database policies.
 
 ## Technology
 
-- **Frontend:** Next.js 15, React 19, TypeScript
+- **Frontend:** Next.js, React, TypeScript
 - **Database:** Supabase PostgreSQL
 - **Realtime:** Supabase Realtime
 - **Hosting / Deployment:** Vercel
@@ -182,32 +257,32 @@ This includes schedule changes, inventory adjustments, routing changes, prioriti
 
 ## Next Development Phase
 
-1. Replace demo-only authentication with secure Supabase Auth.
-2. Create role-based database permissions for leadership, supervisors, planners, specialists, handlers, and assembly lines.
-3. Build the live material-request form for Lines 1–4.
-4. Automatically route hood requests to Tristen and boom requests to Greg.
-5. Build Greg and Tristen's live delivery queues.
-6. Add delivery-status timestamps and confirmation.
-7. Connect inventory movements to deliveries.
-8. Add realtime alerts and leadership reporting.
-9. Add schedule/activity audit history.
-10. Continue improving the system using real production feedback.
+1. Identify the company's current inventory/WMS/ERP system and available approved integration method.
+2. Build a read-only company-inventory connector and field mapping.
+3. Build the Recovery Priority Queue for backlogged reconditioning machines.
+4. Add a Backlog Recovery Planner with target completion-rate scenarios.
+5. Standardize production statuses and completion events.
+6. Expand daily production and material reports.
+7. Collect enough verified production history for meaningful predictive modeling.
+8. Replace demo authentication with secure Supabase Auth.
+9. Implement production-grade role-based database authorization.
+10. Add stronger audit/change history and operational exception tracking.
 
 ## Operations Questions Still To Confirm
 
-1. Official names of Lines 1–4
-2. Shared line logins vs individual worker accounts
-3. Additional materials and responsible handlers
-4. Backup handlers for Greg and Tristen
-5. Approved priority levels and delivery-time targets
-6. Complete official storage/staging locations
-7. Hood styles, quantities, and sections for all 32 rows
-8. Low-stock/reorder thresholds
-9. Definitions for shortage, overage, damage, and other exceptions
-10. Weekly/monthly leadership goals
-11. Required daily and end-of-shift report information
-12. Production-floor devices that will run LineFlow AI
+1. Name and version of the company's existing inventory/WMS/ERP system
+2. Whether an API, reporting feed, database view, or scheduled export is available
+3. Who can authorize read-only integration access
+4. Official names of Lines 1–4
+5. Shared line logins vs individual worker accounts
+6. Additional materials and responsible handlers
+7. Backup handlers for Greg and Tristen
+8. Complete official storage/staging locations
+9. Hood styles, quantities, and sections for all 32 rows
+10. Official low-stock/reorder thresholds
+11. Weekly incoming reconditioning volume
+12. Desired backlog recovery period and sustainable weekly completion target
 
 ## Project Goal
 
-Build LineFlow AI around the real production process, create one shared source of operational information, reduce material delays and shortages, improve communication between the assembly lines and material handlers, provide leadership with live visibility, and continuously improve the system using real operational feedback.
+Build LineFlow AI around the real production process without unnecessarily replacing systems the company already relies on. LineFlow should connect production schedules, machine history, material requests, approved inventory data, and completion performance into one operational intelligence layer that reduces material delays, helps recover reconditioning backlog, improves communication between assembly lines and material handlers, and gives leadership live visibility into what is preventing production from completing machines.
