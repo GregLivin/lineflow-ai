@@ -3,10 +3,8 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-type DemoUser = { name: string; role: string; username: string };
+type DemoUser = { name: string; role: string; username: string; group?: string };
 type TeamMessage = { id:string; category:'Safety'|'Goal'|'Important'|'General'; title:string; message:string; created_by:string; created_at:string; message_date:string; active:boolean };
-
-const supervisors = ['tammy', 'chance', 'debbie'];
 
 export default function TeamMessageBoard({ user }: { user?: DemoUser | null }) {
   const [messages, setMessages] = useState<TeamMessage[]>([]);
@@ -19,7 +17,13 @@ export default function TeamMessageBoard({ user }: { user?: DemoUser | null }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showEditor, setShowEditor] = useState(false);
 
-  const canPost = !!currentUser && supervisors.includes(currentUser.username);
+  const roleText = currentUser?.role?.toLowerCase() ?? '';
+  const canPost = !!currentUser && (
+    currentUser.group === 'supervisor' ||
+    roleText.includes('supervisor') ||
+    roleText.includes('planner')
+  );
+
   const today = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
   const latest = messages[0] ?? null;
 
@@ -41,6 +45,7 @@ export default function TeamMessageBoard({ user }: { user?: DemoUser | null }) {
   }, [user]);
 
   function startCreate() {
+    if (!canPost) return;
     setEditingId(null);
     setCategory('General');
     setTitle('');
@@ -50,6 +55,7 @@ export default function TeamMessageBoard({ user }: { user?: DemoUser | null }) {
   }
 
   function startEdit(item: TeamMessage) {
+    if (!canPost) return;
     setEditingId(item.id);
     setCategory(item.category);
     setTitle(item.title);
@@ -103,7 +109,7 @@ export default function TeamMessageBoard({ user }: { user?: DemoUser | null }) {
     </form>}
 
     <div className="teamMessageList">
-      {loading ? <p className="dashboardRole">Loading team messages...</p> : messages.length===0 ? <article className="teamMessageCard"><span className="teamMessageBadge">General</span><h3>No daily message posted yet.</h3><p>Supervisor updates will appear here.</p></article> : messages.map((item,index) => <article className="teamMessageCard" key={item.id}><div className="teamMessageTop"><span className={`teamMessageBadge teamMessage${item.category}`}>{item.category}</span><span className="teamMessageDate">{new Date(`${item.message_date}T12:00:00`).toLocaleDateString([], {month:'short',day:'numeric'})}</span></div><h3>{item.title}</h3><p>{item.message}</p><div className="teamMessageFooter"><span>Posted by {item.created_by}</span>{canPost && <div style={{display:'flex',gap:8}}>{index===0&&<button type="button" className="secondaryButton" onClick={()=>startEdit(item)}>Edit</button>}<button type="button" className="messageArchiveButton" onClick={()=>archiveMessage(item.id)}>Archive</button></div>}</div></article>)}
+      {loading ? <p className="dashboardRole">Loading team messages...</p> : messages.length===0 ? <article className="teamMessageCard"><span className="teamMessageBadge">General</span><h3>No daily message posted yet.</h3><p>Supervisor or planner updates will appear here.</p></article> : messages.map((item,index) => <article className="teamMessageCard" key={item.id}><div className="teamMessageTop"><span className={`teamMessageBadge teamMessage${item.category}`}>{item.category}</span><span className="teamMessageDate">{new Date(`${item.message_date}T12:00:00`).toLocaleDateString([], {month:'short',day:'numeric'})}</span></div><h3>{item.title}</h3><p>{item.message}</p><div className="teamMessageFooter"><span>Posted by {item.created_by}</span>{canPost && <div style={{display:'flex',gap:8}}>{index===0&&<button type="button" className="secondaryButton" onClick={()=>startEdit(item)}>Edit</button>}<button type="button" className="messageArchiveButton" onClick={()=>archiveMessage(item.id)}>Archive</button></div>}</div></article>)}
     </div>
   </section>;
 }
