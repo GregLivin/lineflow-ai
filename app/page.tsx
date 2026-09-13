@@ -48,7 +48,7 @@ export default function Home() {
       <ProductionSchedule />
 
       <div className="demoAccessFooter">
-        <strong>Demo login example:</strong> Username: <strong>tammy</strong> · Password: <strong>12345</strong> for every user
+        <strong>Demo:</strong> Use the user's name as the username to open their role — <strong>tammy, chance, debbie, jose, greg, tristen</strong> · Lines: <strong>line1–line4</strong> · Password: <strong>12345</strong> for all users
       </div>
     </main>
   );
