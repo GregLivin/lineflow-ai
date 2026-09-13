@@ -34,6 +34,16 @@ export default function LiveClock() {
     second: '2-digit',
   }).format(now);
 
+  const shortDate = new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+  }).format(now);
+
+  const shortTime = new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(now);
+
   const zone = new Intl.DateTimeFormat(undefined, {
     timeZoneName: 'short',
   })
@@ -42,10 +52,17 @@ export default function LiveClock() {
 
   return (
     <div className="liveClock" aria-live="polite">
-      <span className="clockLabel">Current Date & Time</span>
-      <span className="clockDate">{date}</span>
-      <strong className="clockTime">{time}</strong>
-      <span className="clockZone">{zone ?? 'Local time'} · updates live</span>
+      <div className="clockDesktop">
+        <span className="clockLabel">Current Date & Time</span>
+        <span className="clockDate">{date}</span>
+        <strong className="clockTime">{time}</strong>
+        <span className="clockZone">{zone ?? 'Local time'} · updates live</span>
+      </div>
+      <div className="clockMobileCompact">
+        <span>{shortDate}</span>
+        <strong>{shortTime}</strong>
+        <span>{zone ?? 'Local'}</span>
+      </div>
     </div>
   );
 }
