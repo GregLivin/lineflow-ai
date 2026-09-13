@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 type DemoUser = { name: string; role: string; username: string };
-type RequestPart = { id:string; request_id:string; part_name:string; part_number:string|null; quantity:number; location:string|null; delivered:boolean; delivered_at:string|null; delivered_by:string|null };
+type RequestPart = { id:string; request_id:string; part_name:string; part_number:string|null; quantity:number; location:string|null; delivered:boolean; delivered_at:string|null; delivered_by:string|null; inventory_id:string|null; reserved_quantity:number; reservation_status:string; consumed_quantity:number };
 type MaterialRequest = { id:string; assembly_line:string; material_type:'Boom'|'Hood'; material_name:string; model:string|null; machine_id:string|null; machine_serial:string|null; job:string|null; quantity:number; priority:'Normal'|'Urgent'; assigned_handler:string|null; status:'Requested'|'Accepted'|'Picked Up'|'In Transit'|'Delivered'|'Confirmed'; requested_at:string; accepted_at:string|null; picked_up_at:string|null; in_transit_at:string|null; delivered_at:string|null; confirmed_at:string|null; notes:string|null; request_parts?:RequestPart[] };
 type ModelPart = { model:string; material_type:string; part_name:string; part_number:string|null; quantity:number; location:string|null };
 type MachineRun = { id:string; model:string; serial:string|null; job:string|null; status:string|null };
@@ -32,6 +32,10 @@ export default function MaterialRequestFlow({user}:{user:DemoUser}){
   const isLeadership=['tammy','chance','debbie','jose'].includes(user.username);
   const handler=isGreg?'greg':isTristen?'tristen':null;
   const lineName=isLine?`Line ${user.username.replace('line','')}`:null;
+
+  async function syncReservations(){
+    await supabase.rpc('sync_inventory_reservations');
+  }
 
   async function loadModels(type:'Boom'|'Hood'=materialType){
     const {data}=await supabase.from('model_parts').select('model').eq('material_type',type).eq('active',true);
@@ -92,12 +96,13 @@ export default function MaterialRequestFlow({user}:{user:DemoUser}){
     const partsToRequest=chosenPart?[chosenPart]:availableParts;
     if(partsToRequest.length){
       await supabase.from('request_parts').insert(partsToRequest.map(p=>({request_id:created.id,part_name:p.part_name,part_number:p.part_number,quantity:p.quantity,location:p.location})));
+      await syncReservations();
     }
 
     setMessage(chosenPart
-      ? `${chosenPart.part_name} for ${model}${selectedMachine?.serial?` · Serial ${selectedMachine.serial}`:''} sent to ${assignedHandler==='greg'?'Greg':'Tristen'}.`
+      ? `${chosenPart.part_name} for ${model}${selectedMachine?.serial?` · Serial ${selectedMachine.serial}`:''} sent to ${assignedHandler==='greg'?'Greg':'Tristen'} and checked against live inventory.`
       : partsToRequest.length
-        ? `${model}${selectedMachine?.serial?` · Serial ${selectedMachine.serial}`:''} request sent to ${assignedHandler==='greg'?'Greg':'Tristen'} with ${partsToRequest.length} required part types.`
+        ? `${model}${selectedMachine?.serial?` · Serial ${selectedMachine.serial}`:''} request sent to ${assignedHandler==='greg'?'Greg':'Tristen'} with ${partsToRequest.length} required part types. Available stock was automatically reserved.`
         : `${model} request sent. Its parts list still needs to be configured in LineFlow.`);
     setPriority('Normal');setNotes('');setSelectedPart('ALL');setSelectedMachineId('');await loadRequests();setSubmitting(false);
   }
@@ -105,17 +110,30 @@ export default function MaterialRequestFlow({user}:{user:DemoUser}){
   async function updateStatus(r:MaterialRequest,status:MaterialRequest['status']){
     const now=new Date().toISOString(), changes:Record<string,string>={status};
     if(status==='Accepted')changes.accepted_at=now;if(status==='Picked Up')changes.picked_up_at=now;if(status==='In Transit')changes.in_transit_at=now;if(status==='Delivered')changes.delivered_at=now;if(status==='Confirmed')changes.confirmed_at=now;
-    const {error}=await supabase.from('material_requests').update(changes).eq('id',r.id); if(error)setMessage('Status could not be updated.');else await loadRequests();
+    const {error}=await supabase.from('material_requests').update(changes).eq('id',r.id);
+    if(error)setMessage('Status could not be updated.');
+    else { await syncReservations(); await loadRequests(); }
   }
 
   async function togglePartDelivered(part:RequestPart){
-    const delivered=!part.delivered; const {error}=await supabase.from('request_parts').update({delivered,delivered_at:delivered?new Date().toISOString():null,delivered_by:delivered?user.username:null}).eq('id',part.id);
-    if(error)setMessage('Part delivery could not be updated.');else await loadRequests();
+    const delivered=!part.delivered;
+    const {error}=await supabase.from('request_parts').update({delivered,delivered_at:delivered?new Date().toISOString():null,delivered_by:delivered?user.username:null}).eq('id',part.id);
+    if(error)setMessage('Part delivery could not be updated.');
+    else { await syncReservations(); await loadRequests(); }
   }
 
   const newRequests=useMemo(()=>requests.filter(r=>r.status==='Requested'),[requests]);
   const activeRequests=useMemo(()=>requests.filter(r=>['Accepted','Picked Up','In Transit'].includes(r.status)),[requests]);
   const deliveredRequests=useMemo(()=>requests.filter(r=>['Delivered','Confirmed'].includes(r.status)),[requests]);
+
+  function reservationLabel(p:RequestPart){
+    if(p.delivered)return 'Delivered · inventory consumed';
+    if(p.reservation_status==='Reserved')return `Reserved ${p.reserved_quantity}/${p.quantity}`;
+    if(p.reservation_status==='Partial')return `Partial ${p.reserved_quantity}/${p.quantity} reserved`;
+    if(p.reservation_status==='Short')return `Short · 0/${p.quantity} available`;
+    if(p.reservation_status==='No Inventory Match')return 'No matching live inventory record';
+    return 'Waiting for inventory reservation';
+  }
 
   function requestCard(r:MaterialRequest){
     const canHandle=(isGreg&&r.assigned_handler==='greg')||(isTristen&&r.assigned_handler==='tristen');
@@ -123,7 +141,7 @@ export default function MaterialRequestFlow({user}:{user:DemoUser}){
     return <article className={`requestCard ${r.priority==='Urgent'?'urgentRequest':''}`} key={r.id}>
       <div className="requestCardTop"><div><span className="requestLine">{r.assembly_line}</span><h3>{r.material_name}</h3></div><span className={`priorityBadge ${r.priority==='Urgent'?'priorityUrgent':''}`}>{r.priority}</span></div>
       <div className="requestMetaGrid"><div><span>Model</span><strong>{r.model||'—'}</strong></div><div><span>Machine</span><strong>{r.machine_serial||'Not assigned'}</strong></div><div><span>Job</span><strong>{r.job||'—'}</strong></div><div><span>Handler</span><strong>{r.assigned_handler==='greg'?'Greg':'Tristen'}</strong></div><div><span>Status</span><strong>{r.status}</strong></div></div>
-      {parts.length>0?<div className="requestPartsList"><div className="requestPartsHeader"><strong>Required Parts</strong><span>{deliveredCount}/{parts.length} part types delivered</span></div>{parts.map(p=><label className={`requestPartRow ${p.delivered?'requestPartDelivered':''}`} key={p.id}><input type="checkbox" checked={p.delivered} readOnly={!canHandle} onChange={()=>canHandle&&togglePartDelivered(p)}/><span className="requestPartInfo"><strong>{p.part_name}</strong><small>Part #{p.part_number||'Not set'} · Qty {p.quantity} · {p.location||'Location not set'}</small></span></label>)}</div>:<p className="requestNotes">Parts list for this model has not been configured yet.</p>}
+      {parts.length>0?<div className="requestPartsList"><div className="requestPartsHeader"><strong>Required Parts</strong><span>{deliveredCount}/{parts.length} part types delivered</span></div>{parts.map(p=><label className={`requestPartRow ${p.delivered?'requestPartDelivered':''}`} key={p.id}><input type="checkbox" checked={p.delivered} readOnly={!canHandle} onChange={()=>canHandle&&togglePartDelivered(p)}/><span className="requestPartInfo"><strong>{p.part_name}</strong><small>Part #{p.part_number||'Not set'} · Qty {p.quantity} · {p.location||'Location not set'}</small><small>{reservationLabel(p)}</small></span></label>)}</div>:<p className="requestNotes">Parts list for this model has not been configured yet.</p>}
       {r.notes&&<p className="requestNotes">{r.notes}</p>}<div className="requestTiming"><span>Requested {timeLabel(r.requested_at)}</span><span>Elapsed {elapsed(r.requested_at,r.confirmed_at||r.delivered_at)}</span></div>
       {canHandle&&r.status==='Requested'&&<button className="primaryButton requestAction" onClick={()=>updateStatus(r,'Accepted')}>Accept Request</button>}
       {canHandle&&r.status==='Accepted'&&<button className="primaryButton requestAction" onClick={()=>updateStatus(r,'Picked Up')}>Mark Picked Up</button>}
@@ -134,7 +152,7 @@ export default function MaterialRequestFlow({user}:{user:DemoUser}){
   }
 
   return <section className="sectionBlock requestFlowSection">
-    <div className="requestFlowHeader"><div><p className="eyebrow">Live Material Flow</p><h2>{isLine?'Request Material by Model':isGreg?'Boom Request Queue':isTristen?'Hood Request Queue':'Material Request Control Board'}</h2><p className="dashboardRole">Request the complete model set or choose one individual part. When a production machine has a serial number, select it so LineFlow can build its material and completion history.</p></div><div className="liveRequestIndicator"><span className="statusDot"/> Realtime Connected</div></div>
+    <div className="requestFlowHeader"><div><p className="eyebrow">Live Material Flow</p><h2>{isLine?'Request Material by Model':isGreg?'Boom Request Queue':isTristen?'Hood Request Queue':'Material Request Control Board'}</h2><p className="dashboardRole">Request the complete model set or choose one individual part. LineFlow automatically checks live inventory and reserves available material so the same stock is not promised to multiple machines.</p></div><div className="liveRequestIndicator"><span className="statusDot"/> Realtime Connected</div></div>
     {message&&<p className="requestMessage">{message}</p>}
     {isLine&&<form className="requestForm" onSubmit={submitRequest}>
       <div className="requestTypeButtons"><button type="button" className={materialType==='Boom'?'typeButton activeTypeButton':'typeButton'} onClick={()=>chooseMaterialType('Boom')}>Boom</button><button type="button" className={materialType==='Hood'?'typeButton activeTypeButton':'typeButton'} onClick={()=>chooseMaterialType('Hood')}>Hood</button></div>
