@@ -31,7 +31,6 @@ export default function Home() {
           <p className="heroCopy compactHeroCopy" style={{ margin: 0, fontSize: '1rem', lineHeight: 1.45, maxWidth: 690 }}>Material requests, production planning, inventory visibility, and delivery across all four assembly lines.</p>
           <div className="actions homeActions" style={{ margin: 0 }}>
             <Link className="primaryButton linkButton" href="/login">Sign In</Link>
-            <Link className="secondaryButton linkButton" href="/login?role=line">Request Material</Link>
           </div>
         </div>
       </section>
