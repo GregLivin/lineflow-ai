@@ -41,7 +41,7 @@ export default function LoginPage() {
     event.preventDefault();
     const key = username.trim().toLowerCase().replace(/\s+/g, '');
     const user = users[key];
-    if (!user || password !== 'demo') { setError('Invalid demo username or password.'); return; }
+    if (!user || password !== '12345') { setError('Invalid demo username or password.'); return; }
     if (selectedRole && user.group !== selectedRole) {
       setError('This account does not have access to the selected role. Return home and choose the correct role.');
       return;
@@ -57,11 +57,11 @@ export default function LoginPage() {
         <p className="authCopy">{selectedRoleInfo?.subtitle || 'Enter a demo username and the shared demo password to continue.'}</p>
         <form className="loginForm" onSubmit={handleSubmit}>
           <label>Username<input autoComplete="username" value={username} onChange={e => { setUsername(e.target.value); setError(''); }} placeholder="Enter demo username" /></label>
-          <label>Password<input type="password" autoComplete="current-password" value={password} onChange={e => { setPassword(e.target.value); setError(''); }} placeholder="demo" /></label>
+          <label>Password<input type="password" autoComplete="current-password" value={password} onChange={e => { setPassword(e.target.value); setError(''); }} placeholder="12345" /></label>
           {error ? <p className="formError">{error}</p> : null}
           <button className="primaryButton fullButton" type="submit">Sign In</button>
         </form>
-        <p className="authCopy" style={{marginTop:12}}>Demo password for all accounts: <strong>demo</strong></p>
+        <p className="authCopy" style={{marginTop:12}}>Demo password for all accounts: <strong>12345</strong></p>
         <div className="actions"><button className="secondaryButton fullButton" type="button" onClick={() => router.push('/')}>Back to Home</button></div>
       </section>
     </main>
