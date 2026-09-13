@@ -3,30 +3,13 @@ import LiveClock from '../components/LiveClock';
 import ProductionSchedule from '../components/ProductionSchedule';
 import TeamMessageBoard from '../components/TeamMessageBoard';
 
-const demoUsers = [
-  ['Tammy', 'tammy', 'Operations Leadership'],
-  ['Chance', 'chance', 'Houston Supervisor'],
-  ['Debbie', 'debbie', 'Planner'],
-  ['Jose', 'jose', 'Boom Material Specialist'],
-  ['Greg', 'greg', 'Boom Material Handler'],
-  ['Tristen', 'tristen', 'Hood Material Handler'],
-  ['Line 1', 'line1', 'Assembly Line User'],
-  ['Line 2', 'line2', 'Assembly Line User'],
-  ['Line 3', 'line3', 'Assembly Line User'],
-  ['Line 4', 'line4', 'Assembly Line User'],
-];
-
 export default function Home() {
   return (
     <main className="shell homeShell">
       <style>{`
         .clockMobileCompact { display: none; }
-        .demoLoginGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:14px; }
-        .demoLoginRow { display:grid; grid-template-columns:1fr 1fr 1.5fr; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,.02); font-size:.82rem; }
-        .demoLoginRow strong { color:var(--text); }
-        .demoLoginRow span { color:var(--muted); }
-        .demoPassword { margin-top:12px; color:var(--muted); font-size:.86rem; }
-        .demoPassword strong { color:var(--text); }
+        .demoAccessFooter { margin:14px 0 4px; padding:10px 14px; border-top:1px solid var(--border); color:var(--muted); font-size:.72rem; line-height:1.5; text-align:center; }
+        .demoAccessFooter strong { color:var(--text); }
 
         @media (max-width: 680px) {
           .homeHeroCompact { padding: 14px 16px !important; }
@@ -46,8 +29,7 @@ export default function Home() {
           .homeHeroCompact .homeActions .primaryButton { width:auto !important; min-height:38px; padding:0 18px; border-radius:11px; }
           .homeShell > .teamMessageBoard, .homeShell > .scheduleSection { margin-top:12px; }
           .homeShell > .teamMessageBoard { padding:14px 16px !important; }
-          .demoLoginGrid { grid-template-columns:1fr; }
-          .demoLoginRow { grid-template-columns:.8fr .8fr 1.4fr; font-size:.75rem; }
+          .demoAccessFooter { font-size:.65rem; padding:9px 8px; }
         }
       `}</style>
 
@@ -62,21 +44,12 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="sectionBlock">
-        <div className="sectionHeading"><div>
-          <p className="eyebrow">Demo Access</p>
-          <h2>Explore LineFlow by Role</h2>
-          <p className="dashboardRole">Choose any demo account below to see the tools and workflow for that position.</p>
-        </div></div>
-        <div className="demoLoginGrid">
-          {demoUsers.map(([name,username,role])=><div className="demoLoginRow" key={username}><strong>{name}</strong><span>{username}</span><span>{role}</span></div>)}
-        </div>
-        <p className="demoPassword">Password for all demo accounts: <strong>demo</strong></p>
-        <div className="actions" style={{marginTop:12}}><Link className="primaryButton linkButton" href="/login">Open Demo Login</Link></div>
-      </section>
-
       <TeamMessageBoard />
       <ProductionSchedule />
+
+      <div className="demoAccessFooter">
+        <strong>Demo:</strong> tammy · chance · debbie · jose · greg · tristen · line1–line4 &nbsp;|&nbsp; Password: <strong>demo</strong>
+      </div>
     </main>
   );
 }
