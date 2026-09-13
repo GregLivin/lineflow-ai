@@ -48,7 +48,7 @@ export default function Home() {
       <ProductionSchedule />
 
       <div className="demoAccessFooter">
-        <strong>Demo:</strong> tammy · chance · debbie · jose · greg · tristen · line1–line4 &nbsp;|&nbsp; Password: <strong>12345</strong>
+        <strong>Demo login example:</strong> Username: <strong>tammy</strong> · Password: <strong>12345</strong> for every user
       </div>
     </main>
   );
