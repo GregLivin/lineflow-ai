@@ -20,9 +20,10 @@ const starterModels = ['600S', '800S', '1200SJP', '1500SJ'];
 const locationSuggestions = ['Soccer Field', 'Hotdog', 'Triangle', 'Racks', 'Fence Line', 'Line 1', 'Line 2', 'Line 3'];
 
 export default function ModelPartsSetup({ user }: { user: DemoUser }) {
+  const isTristen = user.username === 'tristen';
   const [parts, setParts] = useState<ModelPart[]>([]);
   const [selectedModel, setSelectedModel] = useState('1200SJP');
-  const [materialType, setMaterialType] = useState<'Boom' | 'Hood'>('Boom');
+  const [materialType, setMaterialType] = useState<'Boom' | 'Hood'>(isTristen ? 'Hood' : 'Boom');
   const [newModel, setNewModel] = useState('');
   const [partName, setPartName] = useState('');
   const [partNumber, setPartNumber] = useState('');
@@ -35,11 +36,16 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
   const canManage = ['tammy', 'chance', 'debbie', 'jose', 'greg', 'tristen'].includes(user.username);
 
   async function loadParts() {
-    const { data, error } = await supabase
+    let query = supabase
       .from('model_parts')
       .select('id, model, material_type, part_name, part_number, quantity, location, active')
       .order('model')
       .order('part_name');
+
+    // Tristen is the hood material handler. Do not load boom material into his view.
+    if (isTristen) query = query.eq('material_type', 'Hood');
+
+    const { data, error } = await query;
 
     if (error) setMessage('Unable to load model parts.');
     else setParts((data ?? []) as ModelPart[]);
@@ -47,6 +53,7 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
   }
 
   useEffect(() => {
+    if (isTristen) setMaterialType('Hood');
     loadParts();
     const channel = supabase
       .channel(`lineflow-model-parts-${user.username}`)
@@ -57,8 +64,9 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
   }, [user.username]);
 
   const modelOptions = useMemo(() => {
-    return Array.from(new Set([...starterModels, ...parts.map(part => part.model)])).sort();
-  }, [parts]);
+    const scopedParts = isTristen ? parts.filter(part => part.material_type === 'Hood') : parts;
+    return Array.from(new Set([...starterModels, ...scopedParts.map(part => part.model)])).sort();
+  }, [parts, isTristen]);
 
   const visibleParts = useMemo(
     () => parts.filter(part => part.model === selectedModel && part.material_type === materialType),
@@ -69,10 +77,11 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
     event.preventDefault();
     if (!canManage || !partName.trim()) return;
 
+    const effectiveMaterialType: 'Boom' | 'Hood' = isTristen ? 'Hood' : materialType;
     const model = (newModel.trim() || selectedModel).toUpperCase();
     const { error } = await supabase.from('model_parts').insert({
       model,
-      material_type: materialType,
+      material_type: effectiveMaterialType,
       part_name: partName.trim(),
       part_number: partNumber.trim() || null,
       quantity,
@@ -101,12 +110,14 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
 
   async function savePart(part: ModelPart) {
     if (!canManage) return;
+    if (isTristen && part.material_type !== 'Hood') return;
+
     setSavingId(part.id);
     const { error } = await supabase
       .from('model_parts')
       .update({
         model: part.model.trim().toUpperCase(),
-        material_type: part.material_type,
+        material_type: isTristen ? 'Hood' : part.material_type,
         part_name: part.part_name.trim(),
         part_number: part.part_number?.trim() || null,
         quantity: Math.max(1, Number(part.quantity) || 1),
@@ -122,6 +133,8 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
 
   async function deletePart(part: ModelPart) {
     if (!canManage) return;
+    if (isTristen && part.material_type !== 'Hood') return;
+
     const { error } = await supabase.from('model_parts').delete().eq('id', part.id);
     setMessage(error ? 'Part could not be removed.' : `${part.part_name} removed.`);
     if (!error) await loadParts();
@@ -134,8 +147,12 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
       <div className="requestFlowHeader">
         <div>
           <p className="eyebrow">Material Master Setup</p>
-          <h2>Models, Part Numbers & Locations</h2>
-          <p className="dashboardRole">Configure what parts each model requires. Line users only select the model; handlers receive the detailed parts list automatically.</p>
+          <h2>{isTristen ? 'Hood Models, Part Numbers & Locations' : 'Models, Part Numbers & Locations'}</h2>
+          <p className="dashboardRole">
+            {isTristen
+              ? 'Manage hood material only. Boom material is hidden from this account.'
+              : 'Configure what parts each model requires. Line users only select the model; handlers receive the detailed parts list automatically.'}
+          </p>
         </div>
       </div>
 
@@ -148,10 +165,14 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
           </select>
         </label>
         <label>Material Type
-          <select value={materialType} onChange={e => setMaterialType(e.target.value as 'Boom' | 'Hood')}>
-            <option>Boom</option>
-            <option>Hood</option>
-          </select>
+          {isTristen ? (
+            <select value="Hood" disabled><option>Hood</option></select>
+          ) : (
+            <select value={materialType} onChange={e => setMaterialType(e.target.value as 'Boom' | 'Hood')}>
+              <option>Boom</option>
+              <option>Hood</option>
+            </select>
+          )}
         </label>
       </div>
 
@@ -177,9 +198,7 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
                 <td><input value={part.part_name} onChange={e => updateLocal(part.id, 'part_name', e.target.value)} /></td>
                 <td><input value={part.part_number ?? ''} onChange={e => updateLocal(part.id, 'part_number', e.target.value)} placeholder="Part number" /></td>
                 <td><input type="number" min="1" value={part.quantity} onChange={e => updateLocal(part.id, 'quantity', Math.max(1, Number(e.target.value) || 1))} /></td>
-                <td>
-                  <input list="lineflow-location-options" value={part.location ?? ''} onChange={e => updateLocal(part.id, 'location', e.target.value)} placeholder="Storage location" />
-                </td>
+                <td><input list="lineflow-location-options" value={part.location ?? ''} onChange={e => updateLocal(part.id, 'location', e.target.value)} placeholder="Storage location" /></td>
                 <td><input type="checkbox" checked={part.active} onChange={e => updateLocal(part.id, 'active', e.target.checked)} /></td>
                 <td className="modelPartActions">
                   <button className="secondaryButton" onClick={() => savePart(part)} disabled={savingId === part.id}>{savingId === part.id ? 'Saving...' : 'Save'}</button>
@@ -196,28 +215,15 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
       </datalist>
 
       <form className="addModelPartForm" onSubmit={addPart}>
-        <div>
-          <p className="eyebrow">Add Part</p>
-          <h3>Add another required part</h3>
-        </div>
+        <div><p className="eyebrow">Add Part</p><h3>{isTristen ? 'Add another hood part' : 'Add another required part'}</h3></div>
         <div className="requestFormGrid">
-          <label>Model
-            <input value={newModel} onChange={e => setNewModel(e.target.value)} placeholder={`Leave blank for ${selectedModel}`} />
-          </label>
-          <label>Part Name
-            <input required value={partName} onChange={e => setPartName(e.target.value)} placeholder="Example: Base Boom" />
-          </label>
-          <label>Part Number
-            <input value={partNumber} onChange={e => setPartNumber(e.target.value)} placeholder="Example: 0801316" />
-          </label>
-          <label>Qty per Machine
-            <input type="number" min="1" value={quantity} onChange={e => setQuantity(Math.max(1, Number(e.target.value) || 1))} />
-          </label>
-          <label>Location
-            <input list="lineflow-location-options" value={location} onChange={e => setLocation(e.target.value)} placeholder="Example: Soccer Field" />
-          </label>
+          <label>Model<input value={newModel} onChange={e => setNewModel(e.target.value)} placeholder={`Leave blank for ${selectedModel}`} /></label>
+          <label>Part Name<input required value={partName} onChange={e => setPartName(e.target.value)} placeholder={isTristen ? 'Example: Hood Assembly' : 'Example: Base Boom'} /></label>
+          <label>Part Number<input value={partNumber} onChange={e => setPartNumber(e.target.value)} placeholder="Part number" /></label>
+          <label>Qty per Machine<input type="number" min="1" value={quantity} onChange={e => setQuantity(Math.max(1, Number(e.target.value) || 1))} /></label>
+          <label>Location<input list="lineflow-location-options" value={location} onChange={e => setLocation(e.target.value)} placeholder="Storage location" /></label>
         </div>
-        <button className="primaryButton" type="submit">Add Part to Model</button>
+        <button className="primaryButton" type="submit">{isTristen ? 'Add Hood Part to Model' : 'Add Part to Model'}</button>
       </form>
     </section>
   );
