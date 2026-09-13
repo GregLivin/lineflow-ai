@@ -1,0 +1,16 @@
+/* Keep homepage content below iPhone status bar / Dynamic Island in standalone mode. */
+@media (max-width: 680px) {
+  .homeShell {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+  }
+
+  .operationsHero {
+    margin-top: 0;
+  }
+}
+
+@media (display-mode: standalone) and (max-width: 680px) {
+  .homeShell {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+  }
+}
