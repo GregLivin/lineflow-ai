@@ -59,6 +59,7 @@ export default function DashboardPage(){
   const isSpecialist=group==='specialist';
   const isGreg=user.username==='greg';
   const isTristen=user.username==='tristen';
+  const isTammy=user.username==='tammy';
   const canViewParts=!isLine;
   const canViewSchedule=!isLine;
   const canViewYard=isSupervisor||isSpecialist;
@@ -67,11 +68,21 @@ export default function DashboardPage(){
   const accessTitle=isLine?'Line User View':isHandler?'Material Handler View':isSpecialist?'Boom Line Material Specialist View':'Supervisor / Planner View';
   const accessText=isLine?'Create material requests, track status, and confirm delivery.':isHandler?'Receive assigned requests, check parts, and update delivery status.':isSpecialist?'Monitor boom-line readiness, parts, schedule, shortages, and production support.':'Monitor production, material flow, inventory, yard reconditioning, and daily goals.';
 
+  const header = <section className="dashboardHeader">
+    <div><p className="eyebrow">LineFlow AI Dashboard</p><h1 className="dashboardTitle">Welcome, {user.name}</h1><p className="dashboardRole">{user.role}</p></div>
+    <button className="secondaryButton" onClick={signOut}>Sign Out</button>
+  </section>;
+
+  if(isTammy){
+    return <main className="shell">
+      {header}
+      <TeamMessageBoard user={user}/>
+      <ProductionSchedule/>
+    </main>;
+  }
+
   return <main className="shell">
-    <section className="dashboardHeader">
-      <div><p className="eyebrow">LineFlow AI Dashboard</p><h1 className="dashboardTitle">Welcome, {user.name}</h1><p className="dashboardRole">{user.role}</p></div>
-      <button className="secondaryButton" onClick={signOut}>Sign Out</button>
-    </section>
+    {header}
 
     {isSupervisor ? <>
       <TeamMessageBoard user={user}/>
