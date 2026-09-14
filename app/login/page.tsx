@@ -63,7 +63,10 @@ export default function LoginPage() {
           {error ? <p className="formError">{error}</p> : null}
           <button className="primaryButton fullButton" type="submit">Sign In</button>
         </form>
-        <p className="authCopy" style={{marginTop:12}}>Demo password for all accounts: <strong>12345</strong></p>
+        <p className="authCopy" style={{ marginTop: 12, fontSize: '0.86rem', lineHeight: 1.6 }}>
+          <strong>Demo usernames:</strong> leadership · supervisor · planner · boomspecialist · boomhandler · hoodhandler · line1 · line2 · line3 · line4
+        </p>
+        <p className="authCopy" style={{ marginTop: 4 }}>Demo password for all accounts: <strong>12345</strong></p>
         <div className="actions"><button className="secondaryButton fullButton" type="button" onClick={() => router.push('/')}>Back to Home</button></div>
       </section>
     </main>
