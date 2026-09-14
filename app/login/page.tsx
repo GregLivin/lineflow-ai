@@ -8,7 +8,7 @@ type DemoAccount = { name: string; role: string; group: string; internalUsername
 const users: Record<string, DemoAccount> = {
   tammy: { name: 'Operations Leadership', role: 'Operations Leadership / System Administrator', group: 'supervisor', internalUsername: 'tammy' },
   chance: { name: 'Houston Supervisor', role: 'Houston Supervisor / System Administrator', group: 'supervisor', internalUsername: 'chance' },
-  planner: { name: 'Planner', role: 'Planner / System Administrator', group: 'supervisor', internalUsername: 'debbie' },
+  debbie: { name: 'Planner', role: 'Planner / System Administrator', group: 'supervisor', internalUsername: 'debbie' },
   jose: { name: 'Boom Line Material Specialist', role: 'Boom Line Material Specialist', group: 'specialist', internalUsername: 'jose' },
   greg: { name: 'Boom Material Handler', role: 'Boom Material Handler / Combi Lift', group: 'handler', internalUsername: 'greg' },
   storm: { name: 'Hood Material Handler', role: 'Hood Material Handler / Forklift', group: 'handler', internalUsername: 'tristen' },
@@ -65,7 +65,7 @@ export default function LoginPage() {
           <button className="primaryButton fullButton" type="submit">Sign In</button>
         </form>
         <p className="authCopy" style={{ marginTop: 12, fontSize: '0.86rem', lineHeight: 1.6 }}>
-          <strong>Demo usernames:</strong> tammy · chance · planner · jose · greg · storm · tristen · mike · line2 · line3 · line4
+          <strong>Demo usernames:</strong> tammy · chance · debbie · jose · greg · storm · tristen · mike · line2 · line3 · line4
         </p>
         <p className="authCopy" style={{ marginTop: 4 }}>Demo password for all accounts: <strong>12345</strong></p>
         <div className="actions"><button className="secondaryButton fullButton" type="button" onClick={() => router.push('/')}>Back to Home</button></div>
