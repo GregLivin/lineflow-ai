@@ -11,7 +11,7 @@ import ProductionGoals from '../../components/ProductionGoals';
 import ProductionIntelligence from '../../components/ProductionIntelligence';
 import LiveInventory from '../../components/LiveInventory';
 
-type UserGroup = 'line' | 'handler' | 'supervisor' | 'specialist';
+type UserGroup = 'line' | 'handler' | 'supervisor' | 'specialist' | 'shipping';
 type DemoUser = { name: string; role: string; username: string; group?: UserGroup };
 type PanelKey = 'requests' | 'inventory' | 'yard' | 'goals' | 'schedule' | null;
 type CardProps = { label:string; value:string; text:string; panel:Exclude<PanelKey,null>; onOpen:(panel:Exclude<PanelKey,null>)=>void };
@@ -25,6 +25,7 @@ function inferGroup(user:DemoUser):UserGroup{
   if(user.username.startsWith('line'))return 'line';
   if(['greg','tristen'].includes(user.username))return 'handler';
   if(user.username==='jose')return 'specialist';
+  if(user.username==='byrd')return 'shipping';
   return 'supervisor';
 }
 
@@ -59,16 +60,17 @@ export default function DashboardPage(){
   const isHandler=group==='handler';
   const isSupervisor=group==='supervisor';
   const isSpecialist=group==='specialist';
+  const isShipping=group==='shipping';
   const isGreg=user.username==='greg';
   const isTristen=user.username==='tristen';
   const isTammy=user.username==='tammy';
-  const canViewParts=!isLine;
+  const canViewParts=!isLine&&!isShipping;
   const canViewSchedule=!isLine;
-  const canViewYard=isSupervisor||isSpecialist;
+  const canViewYard=isSupervisor||isSpecialist||isShipping;
   const canViewGoals=isSupervisor||isSpecialist;
 
-  const accessTitle=isLine?'Line User View':isHandler?'Material Handler View':isSpecialist?'Boom Line Material Specialist View':'Supervisor / Planner View';
-  const accessText=isLine?'Create material requests, track status, and confirm delivery.':isHandler?'Receive assigned requests, check parts, and update delivery status.':isSpecialist?'Monitor boom-line readiness, parts, schedule, shortages, and production support.':'Monitor production, material flow, inventory, yard reconditioning, and daily goals.';
+  const accessTitle=isLine?'Line User View':isHandler?'Material Handler View':isSpecialist?'Boom Line Material Specialist View':isShipping?'Shipping & Receiving View':'Supervisor / Planner View';
+  const accessText=isLine?'Create material requests, track status, and confirm delivery.':isHandler?'Receive assigned requests, check parts, and update delivery status.':isSpecialist?'Monitor boom-line readiness, parts, schedule, shortages, and production support.':isShipping?'Check incoming models into reconditioning and completed models out for flatbed shipment.':'Monitor production, material flow, inventory, yard reconditioning, and daily goals.';
 
   const header = <section className="dashboardHeader">
     <div><p className="eyebrow">LineFlow AI Dashboard</p><h1 className="dashboardTitle">Welcome, {user.name}</h1><p className="dashboardRole">{user.role}</p></div>
@@ -100,10 +102,11 @@ export default function DashboardPage(){
       {isLine&&<section className="dashboardGrid"><ClickCard label="Request Material" value="Create Request" text="Select the model or material needed and send it." panel="requests" onOpen={openPanel}/><ClickCard label="Track Requests" value="Live Status" text="Track the request through delivery and confirmation." panel="requests" onOpen={openPanel}/></section>}
       {isHandler&&<section className="dashboardGrid"><ClickCard label="Assigned Requests" value={isGreg?'Boom Queue':isTristen?'Hood Queue':'My Queue'} text="Accept assigned material requests and work them in priority order." panel="requests" onOpen={openPanel}/><ClickCard label="Part Checklist" value="Pick & Deliver" text="See parts, quantities, part numbers, and locations." panel="requests" onOpen={openPanel}/><ClickCard label="Live Inventory" value={isTristen?'Hood Stock':'Parts & Stock'} text="Update incoming, outgoing, reserved, and on-hand material." panel="inventory" onOpen={openPanel}/><ClickCard label="Production Plan" value="Read Only" text="Review upcoming production demand." panel="schedule" onOpen={openPanel}/></section>}
       {isSpecialist&&<section className="dashboardGrid"><ClickCard label="Yard Boom Lifts" value="Reconditioning" text="See exact boom-lift backlog, completed green tags, and units waiting on material." panel="yard" onOpen={openPanel}/><ClickCard label="Production Goals" value="Live Progress" text="Track today’s green tag goal and units waiting on material." panel="goals" onOpen={openPanel}/><ClickCard label="Live Requests" value="Boom Support" text="Monitor boom delivery activity." panel="requests" onOpen={openPanel}/><ClickCard label="Live Inventory" value="Boom Stock" text="Maintain boom inventory, movement, locations, and shortages." panel="inventory" onOpen={openPanel}/></section>}
+      {isShipping&&<section className="dashboardGrid"><ClickCard label="Incoming Models" value="Check In" text="Record models arriving for reconditioning and review units currently in the yard." panel="yard" onOpen={openPanel}/><ClickCard label="Completed Models" value="Check Out" text="Review completed units ready to be loaded onto flatbed trucks for shipment." panel="yard" onOpen={openPanel}/><ClickCard label="Production Schedule" value="Read Only" text="Review model, serial, job, status, and shipping readiness." panel="schedule" onOpen={openPanel}/></section>}
     </>}
     {canViewGoals&&<ProductionGoals user={user}/>} 
     {canViewYard&&<YardReconditioning user={user}/>} 
-    <div id="requests"><MaterialRequestFlow user={user}/></div>
+    {!isShipping&&<div id="requests"><MaterialRequestFlow user={user}/></div>}
     {canViewParts&&<LiveInventory user={user}/>} 
     {canViewParts&&<div id="parts"><ModelPartsSetup user={user}/></div>}
     {activePanel==='schedule'&&canViewSchedule&&<section id="dashboard-tool-panel" className="sectionBlock dashboardToolPanel"><div className="toolPanelHeader"><div><p className="eyebrow">Production</p><h2>Production Schedule</h2></div><button className="secondaryButton" onClick={()=>setActivePanel(null)}>Close</button></div><ProductionSchedule/></section>}
