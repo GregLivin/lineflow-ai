@@ -14,7 +14,7 @@ const users: Record<string, DemoAccount> = {
   storm: { name: 'Hood Material Handler', role: 'Hood Material Handler / Forklift', group: 'handler', internalUsername: 'tristen' },
   tristen: { name: 'Hood Material Handler', role: 'Hood Material Handler / Forklift', group: 'handler', internalUsername: 'tristen' },
   byrd: { name: 'Byrd', role: 'Shipping & Receiving Specialist', group: 'shipping', internalUsername: 'byrd' },
-  mike: { name: 'Mike', role: 'Assembly Line User', group: 'line', internalUsername: 'line1' },
+  mike: { name: 'Mike', role: 'Boom Assembly Line Supervisor', group: 'line', internalUsername: 'line1' },
   line2: { name: 'Line 2', role: 'Assembly Line User', group: 'line', internalUsername: 'line2' },
   line3: { name: 'Line 3', role: 'Assembly Line User', group: 'line', internalUsername: 'line3' },
   line4: { name: 'Line 4', role: 'Assembly Line User', group: 'line', internalUsername: 'line4' },
@@ -47,31 +47,23 @@ export default function LoginPage() {
     const key = username.trim().toLowerCase().replace(/\s+/g, '');
     const user = users[key];
     if (!user || password !== '12345') { setError('Invalid demo username or password.'); return; }
-    if (selectedRole && user.group !== selectedRole) {
-      setError('This account does not have access to the selected role.');
-      return;
-    }
+    if (selectedRole && user.group !== selectedRole) { setError('This account does not have access to the selected role.'); return; }
     localStorage.setItem('lineflowUser', JSON.stringify({ name: user.name, role: user.role, group: user.group, username: user.internalUsername }));
     router.push('/dashboard');
   }
 
   return (
-    <main className="shell authShell">
-      <section className="authCard">
-        <div className="brandRow"><div className="logoMark">LF</div><div><p className="eyebrow">LineFlow AI · Demo</p><h1 className="authTitle">{selectedRoleInfo?.title || 'Sign In'}</h1></div></div>
-        <p className="authCopy">{selectedRoleInfo?.subtitle || 'Enter a role-based demo username and the shared password to continue.'}</p>
-        <form className="loginForm" onSubmit={handleSubmit}>
-          <label>Username<input autoComplete="username" value={username} onChange={e => { setUsername(e.target.value); setError(''); }} placeholder="Enter role username" /></label>
-          <label>Password<input type="password" autoComplete="current-password" value={password} onChange={e => { setPassword(e.target.value); setError(''); }} placeholder="12345" /></label>
-          {error ? <p className="formError">{error}</p> : null}
-          <button className="primaryButton fullButton" type="submit">Sign In</button>
-        </form>
-        <p className="authCopy" style={{ marginTop: 12, fontSize: '0.86rem', lineHeight: 1.6 }}>
-          <strong>Demo usernames:</strong> tammy · chance · debbie · jose · greg · storm · tristen · byrd · mike · line2 · line3 · line4
-        </p>
-        <p className="authCopy" style={{ marginTop: 4 }}>Demo password for all accounts: <strong>12345</strong></p>
-        <div className="actions"><button className="secondaryButton fullButton" type="button" onClick={() => router.push('/')}>Back to Home</button></div>
-      </section>
-    </main>
+    <main className="shell authShell"><section className="authCard">
+      <div className="brandRow"><div className="logoMark">LF</div><div><p className="eyebrow">LineFlow AI · Demo</p><h1 className="authTitle">{selectedRoleInfo?.title || 'Sign In'}</h1></div></div>
+      <p className="authCopy">{selectedRoleInfo?.subtitle || 'Enter a role-based demo username and the shared password to continue.'}</p>
+      <form className="loginForm" onSubmit={handleSubmit}>
+        <label>Username<input autoComplete="username" value={username} onChange={e => { setUsername(e.target.value); setError(''); }} placeholder="Enter role username" /></label>
+        <label>Password<input type="password" autoComplete="current-password" value={password} onChange={e => { setPassword(e.target.value); setError(''); }} placeholder="12345" /></label>
+        {error ? <p className="formError">{error}</p> : null}<button className="primaryButton fullButton" type="submit">Sign In</button>
+      </form>
+      <p className="authCopy" style={{ marginTop: 12, fontSize: '0.86rem', lineHeight: 1.6 }}><strong>Demo usernames:</strong> tammy · chance · debbie · jose · greg · storm · tristen · byrd · mike · line2 · line3 · line4</p>
+      <p className="authCopy" style={{ marginTop: 4 }}>Demo password for all accounts: <strong>12345</strong></p>
+      <div className="actions"><button className="secondaryButton fullButton" type="button" onClick={() => router.push('/')}>Back to Home</button></div>
+    </section></main>
   );
 }
