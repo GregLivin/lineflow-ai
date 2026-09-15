@@ -3,248 +3,42 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-type ScheduleRow = {
-  id: string;
-  priority: string;
-  job: string;
-  model: string;
-  serial: string;
-  status: string;
-  boom: string;
-  completion: string;
-  comments: string;
-};
+type ScheduleRow = { id:string; priority:string; job:string; model:string; serial:string; status:string; boom:string; completion:string; comments:string };
+type SavedUser = { username?:string; name?:string };
+type DbScheduleRow = { id:string; priority:number|null; job:string|null; model:string|null; serial:string|null; status:string|null; boom:string|null; complete_by:string|null; comments:string|null; updated_by:string|null };
+type Props = { publicView?: boolean };
 
-type SavedUser = { username?: string; name?: string };
+const editors=['debbie','tammy','chance','jose'];
+function mapDbRow(row:DbScheduleRow):ScheduleRow{return{id:row.id,priority:row.priority?.toString()??'',job:row.job??'',model:row.model??'',serial:row.serial??'',status:row.status??'Planned',boom:row.boom??'',completion:row.complete_by?row.complete_by.slice(0,16):'',comments:row.comments??''}}
+function statusClass(status:string){const s=status.toLowerCase();if(s.includes('progress'))return 'isProgress';if(s.includes('waiting')||s.includes('material'))return 'isWaiting';if(s.includes('complete')||s.includes('green'))return 'isComplete';return 'isPlanned'}
+function formatComplete(value:string){if(!value)return 'Not set';const d=new Date(value);return Number.isNaN(d.getTime())?value:d.toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
 
-type DbScheduleRow = {
-  id: string;
-  priority: number | null;
-  job: string | null;
-  model: string | null;
-  serial: string | null;
-  status: string | null;
-  boom: string | null;
-  complete_by: string | null;
-  comments: string | null;
-  updated_by: string | null;
-};
+export default function ProductionSchedule({publicView=false}:Props){
+ const[rows,setRows]=useState<ScheduleRow[]>([]),[editing,setEditing]=useState(false),[user,setUser]=useState<SavedUser|null>(null),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[message,setMessage]=useState(''),[loadedIds,setLoadedIds]=useState<string[]>([]);
+ async function loadSchedule(showLoading=false){if(showLoading)setLoading(true);const{data,error}=await supabase.from('production_schedule').select('id, priority, job, model, serial, status, boom, complete_by, comments, updated_by').order('priority',{ascending:true});if(error){setMessage('Unable to load the shared schedule.');setLoading(false);return}const mapped=(data as DbScheduleRow[]).map(mapDbRow);setRows(mapped);setLoadedIds(mapped.map(row=>row.id));setLoading(false)}
+ useEffect(()=>{const savedUser=localStorage.getItem('lineflowUser');if(savedUser){try{setUser(JSON.parse(savedUser))}catch{}}loadSchedule(true);const channel=supabase.channel('lineflow-production-schedule').on('postgres_changes',{event:'*',schema:'public',table:'production_schedule'},()=>{if(!editing)loadSchedule()}).subscribe();return()=>{supabase.removeChannel(channel)}},[editing]);
+ const canEdit=useMemo(()=>!publicView&&!!user?.username&&editors.includes(user.username.toLowerCase()),[user,publicView]);
+ function updateRow(id:string,field:keyof ScheduleRow,value:string){setRows(current=>current.map(row=>row.id===id?{...row,[field]:value}:row))}
+ function addRow(){setRows(current=>[...current,{id:crypto.randomUUID(),priority:String(current.length+1),job:'',model:'',serial:'',status:'Planned',boom:'',completion:'',comments:''}])}
+ function removeRow(id:string){setRows(current=>current.filter(row=>row.id!==id))}
+ async function saveSchedule(){if(!canEdit||!user?.username)return;setSaving(true);setMessage('');const currentIds=rows.map(row=>row.id),removedIds=loadedIds.filter(id=>!currentIds.includes(id));if(removedIds.length){const{error}=await supabase.from('production_schedule').delete().in('id',removedIds);if(error){setMessage('Could not remove one or more schedule rows.');setSaving(false);return}}const payload=rows.map((row,index)=>({id:row.id,priority:Number.parseInt(row.priority,10)||index+1,job:row.job||null,model:row.model||null,serial:row.serial||null,status:row.status||'Planned',boom:row.boom||null,complete_by:row.completion?new Date(row.completion).toISOString():null,comments:row.comments||null,updated_by:user.username}));const{error}=await supabase.from('production_schedule').upsert(payload,{onConflict:'id'});if(error){setMessage('Schedule changes could not be saved.');setSaving(false);return}setEditing(false);setSaving(false);setMessage('Schedule saved. Everyone will see the update live.');await loadSchedule()}
 
-const editors = ['debbie', 'tammy', 'chance', 'jose'];
+ if(publicView)return <section className="sectionBlock scheduleSection publicSchedule">
+  <style>{`
+   .publicSchedule{overflow:hidden;padding:26px;background:linear-gradient(145deg,rgba(15,27,45,.98),rgba(7,18,32,.98));border-color:rgba(56,189,248,.2)}
+   .publicSchedule .publicScheduleHead{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:20px}.publicSchedule .publicScheduleHead h2{margin:0;font-size:clamp(1.7rem,4vw,2.45rem)}
+   .publicSchedule .liveBadge{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:999px;border:1px solid rgba(34,197,94,.24);background:rgba(34,197,94,.07);color:#bbf7d0;font-size:.75rem;font-weight:800;white-space:nowrap}.publicSchedule .liveBadge:before{content:'';width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 12px rgba(34,197,94,.75)}
+   .publicScheduleGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.publicMachine{position:relative;overflow:hidden;border:1px solid rgba(148,163,184,.16);background:linear-gradient(145deg,#102038,#0b1728);border-radius:18px;padding:18px;min-width:0}.publicMachine:before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#38bdf8}.publicMachine.isWaiting:before{background:#f59e0b}.publicMachine.isComplete:before{background:#22c55e}.publicMachine.isPlanned:before{background:#64748b}
+   .machineTop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.machinePriority{color:#7dd3fc;font-size:.68rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.machineModel{font-size:1.45rem;font-weight:900;letter-spacing:-.03em;margin-top:3px}.publicStatus{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:.72rem;font-weight:800;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.22);color:#d7f1ff;white-space:nowrap}.isWaiting .publicStatus{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.28);color:#fde68a}.isComplete .publicStatus{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.28);color:#bbf7d0}.isPlanned .publicStatus{background:rgba(148,163,184,.08);border-color:rgba(148,163,184,.18);color:#cbd5e1}
+   .machineDetails{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(148,163,184,.12)}.machineDetail span{display:block;color:#64748b;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}.machineDetail strong{display:block;color:#e2e8f0;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+   .publicScheduleNote{margin:16px 0 0;color:#7c93ad;font-size:.78rem;text-align:center}
+   @media(max-width:680px){.publicSchedule{padding:18px 16px}.publicSchedule .publicScheduleHead{align-items:flex-start;flex-direction:column;gap:10px}.publicScheduleGrid{grid-template-columns:1fr}.publicMachine{padding:15px}.machineModel{font-size:1.25rem}.machineDetails{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.machineDetail strong{font-size:.76rem}.publicStatus{font-size:.68rem}}
+  `}</style>
+  <div className="publicScheduleHead"><div><p className="eyebrow">Live Production Schedule</p><h2>Today&apos;s Boom / Production Plan</h2><p className="dashboardRole">A live visual snapshot of today&apos;s Houston production plan.</p></div><span className="liveBadge">Live Schedule</span></div>
+  {message&&<p className="scheduleFootnote">{message}</p>}
+  <div className="publicScheduleGrid">{loading?<div className="publicMachine">Loading live schedule...</div>:rows.length===0?<div className="publicMachine">No production schedule rows yet.</div>:rows.map(row=><article className={`publicMachine ${statusClass(row.status)}`} key={row.id}><div className="machineTop"><div><span className="machinePriority">Priority {row.priority||'—'}</span><div className="machineModel">{row.model||'Model not entered'}</div></div><span className="publicStatus">{row.status||'Planned'}</span></div><div className="machineDetails"><div className="machineDetail"><span>Boom</span><strong>{row.boom||'—'}</strong></div><div className="machineDetail"><span>Serial</span><strong>{row.serial||'Not entered'}</strong></div><div className="machineDetail"><span>Complete by</span><strong>{formatComplete(row.completion)}</strong></div></div></article>)}</div>
+  <p className="publicScheduleNote">Live operational snapshot · Full schedule management is available after sign in.</p>
+ </section>;
 
-function mapDbRow(row: DbScheduleRow): ScheduleRow {
-  return {
-    id: row.id,
-    priority: row.priority?.toString() ?? '',
-    job: row.job ?? '',
-    model: row.model ?? '',
-    serial: row.serial ?? '',
-    status: row.status ?? 'Planned',
-    boom: row.boom ?? '',
-    completion: row.complete_by ? row.complete_by.slice(0, 16) : '',
-    comments: row.comments ?? '',
-  };
-}
-
-export default function ProductionSchedule() {
-  const [rows, setRows] = useState<ScheduleRow[]>([]);
-  const [editing, setEditing] = useState(false);
-  const [user, setUser] = useState<SavedUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState('');
-  const [loadedIds, setLoadedIds] = useState<string[]>([]);
-
-  async function loadSchedule(showLoading = false) {
-    if (showLoading) setLoading(true);
-
-    const { data, error } = await supabase
-      .from('production_schedule')
-      .select('id, priority, job, model, serial, status, boom, complete_by, comments, updated_by')
-      .order('priority', { ascending: true });
-
-    if (error) {
-      setMessage('Unable to load the shared schedule.');
-      setLoading(false);
-      return;
-    }
-
-    const mapped = (data as DbScheduleRow[]).map(mapDbRow);
-    setRows(mapped);
-    setLoadedIds(mapped.map(row => row.id));
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    const savedUser = localStorage.getItem('lineflowUser');
-    if (savedUser) {
-      try { setUser(JSON.parse(savedUser)); } catch { /* signed out */ }
-    }
-
-    loadSchedule(true);
-
-    const channel = supabase
-      .channel('lineflow-production-schedule')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'production_schedule' },
-        () => {
-          if (!editing) loadSchedule();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [editing]);
-
-  const canEdit = useMemo(
-    () => !!user?.username && editors.includes(user.username.toLowerCase()),
-    [user]
-  );
-
-  function updateRow(id: string, field: keyof ScheduleRow, value: string) {
-    setRows(current => current.map(row => row.id === id ? { ...row, [field]: value } : row));
-  }
-
-  function addRow() {
-    setRows(current => [...current, {
-      id: crypto.randomUUID(),
-      priority: String(current.length + 1),
-      job: '',
-      model: '',
-      serial: '',
-      status: 'Planned',
-      boom: '',
-      completion: '',
-      comments: '',
-    }]);
-  }
-
-  function removeRow(id: string) {
-    setRows(current => current.filter(row => row.id !== id));
-  }
-
-  async function saveSchedule() {
-    if (!canEdit || !user?.username) return;
-
-    setSaving(true);
-    setMessage('');
-
-    const currentIds = rows.map(row => row.id);
-    const removedIds = loadedIds.filter(id => !currentIds.includes(id));
-
-    if (removedIds.length > 0) {
-      const { error: deleteError } = await supabase
-        .from('production_schedule')
-        .delete()
-        .in('id', removedIds);
-
-      if (deleteError) {
-        setMessage('Could not remove one or more schedule rows.');
-        setSaving(false);
-        return;
-      }
-    }
-
-    const payload = rows.map((row, index) => ({
-      id: row.id,
-      priority: Number.parseInt(row.priority, 10) || index + 1,
-      job: row.job || null,
-      model: row.model || null,
-      serial: row.serial || null,
-      status: row.status || 'Planned',
-      boom: row.boom || null,
-      complete_by: row.completion ? new Date(row.completion).toISOString() : null,
-      comments: row.comments || null,
-      updated_by: user.username,
-    }));
-
-    const { error } = await supabase
-      .from('production_schedule')
-      .upsert(payload, { onConflict: 'id' });
-
-    if (error) {
-      setMessage('Schedule changes could not be saved.');
-      setSaving(false);
-      return;
-    }
-
-    setEditing(false);
-    setSaving(false);
-    setMessage('Schedule saved. Everyone will see the update live.');
-    await loadSchedule();
-  }
-
-  return (
-    <section className="sectionBlock scheduleSection">
-      <div className="scheduleHeader">
-        <div>
-          <p className="eyebrow">Live Production Schedule</p>
-          <h2>Today&apos;s Boom / Production Plan</h2>
-          <p className="dashboardRole">Shared live schedule for Houston operations and remote leadership.</p>
-        </div>
-        <div className="scheduleActions">
-          {canEdit && !editing && <button className="secondaryButton" onClick={() => { setEditing(true); setMessage(''); }}>Edit Schedule</button>}
-          {canEdit && editing && <>
-            <button className="secondaryButton" onClick={addRow}>Add Row</button>
-            <button className="primaryButton" disabled={saving} onClick={saveSchedule}>{saving ? 'Saving...' : 'Save Changes'}</button>
-          </>}
-        </div>
-      </div>
-
-      {message && <p className="scheduleFootnote">{message}</p>}
-
-      <div className="scheduleTableWrap">
-        <table className="scheduleTable">
-          <thead>
-            <tr>
-              <th>Priority</th>
-              <th>Job</th>
-              <th>Model</th>
-              <th>Serial</th>
-              <th>Status</th>
-              <th>Boom</th>
-              <th>Complete By</th>
-              <th>Comments</th>
-              {editing && canEdit ? <th /> : null}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={editing && canEdit ? 9 : 8}>Loading live schedule...</td></tr>
-            ) : rows.length === 0 ? (
-              <tr><td colSpan={editing && canEdit ? 9 : 8}>No production schedule rows yet.</td></tr>
-            ) : rows.map(row => (
-              <tr key={row.id}>
-                {(['priority','job','model','serial','status','boom','completion','comments'] as (keyof ScheduleRow)[]).map(field => (
-                  <td key={field}>
-                    {editing && canEdit ? (
-                      <input
-                        className="scheduleInput"
-                        type={field === 'completion' ? 'datetime-local' : field === 'priority' ? 'number' : 'text'}
-                        value={String(row[field])}
-                        onChange={e => updateRow(row.id, field, e.target.value)}
-                        aria-label={`${field} schedule row`}
-                      />
-                    ) : (
-                      <span className={field === 'status' ? 'scheduleStatus' : ''}>{String(row[field]) || '—'}</span>
-                    )}
-                  </td>
-                ))}
-                {editing && canEdit ? (
-                  <td><button className="removeRowButton" onClick={() => removeRow(row.id)}>Remove</button></td>
-                ) : null}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <p className="scheduleFootnote">
-        Debbie, Tammy, Chance, and Jose can edit. Changes sync across devices in real time.
-      </p>
-    </section>
-  );
+ return <section className="sectionBlock scheduleSection"><div className="scheduleHeader"><div><p className="eyebrow">Live Production Schedule</p><h2>Today&apos;s Boom / Production Plan</h2><p className="dashboardRole">Shared live schedule for Houston operations and remote leadership.</p></div><div className="scheduleActions">{canEdit&&!editing&&<button className="secondaryButton" onClick={()=>{setEditing(true);setMessage('')}}>Edit Schedule</button>}{canEdit&&editing&&<><button className="secondaryButton" onClick={addRow}>Add Row</button><button className="primaryButton" disabled={saving} onClick={saveSchedule}>{saving?'Saving...':'Save Changes'}</button></>}</div></div>{message&&<p className="scheduleFootnote">{message}</p>}<div className="scheduleTableWrap"><table className="scheduleTable"><thead><tr><th>Priority</th><th>Job</th><th>Model</th><th>Serial</th><th>Status</th><th>Boom</th><th>Complete By</th><th>Comments</th>{editing&&canEdit?<th/>:null}</tr></thead><tbody>{loading?<tr><td colSpan={editing&&canEdit?9:8}>Loading live schedule...</td></tr>:rows.length===0?<tr><td colSpan={editing&&canEdit?9:8}>No production schedule rows yet.</td></tr>:rows.map(row=><tr key={row.id}>{(['priority','job','model','serial','status','boom','completion','comments'] as (keyof ScheduleRow)[]).map(field=><td key={field}>{editing&&canEdit?<input className="scheduleInput" type={field==='completion'?'datetime-local':field==='priority'?'number':'text'} value={String(row[field])} onChange={e=>updateRow(row.id,field,e.target.value)} aria-label={`${field} schedule row`}/>:<span className={field==='status'?'scheduleStatus':''}>{String(row[field])||'—'}</span>}</td>)}{editing&&canEdit?<td><button className="removeRowButton" onClick={()=>removeRow(row.id)}>Remove</button></td>:null}</tr>)}</tbody></table></div><p className="scheduleFootnote">Debbie, Tammy, Chance, and Jose can edit. Changes sync across devices in real time.</p></section>;
 }
