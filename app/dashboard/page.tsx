@@ -11,12 +11,12 @@ import TeamMessageBoard from '../../components/TeamMessageBoard';
 import ProductionGoals from '../../components/ProductionGoals';
 import ProductionIntelligence from '../../components/ProductionIntelligence';
 import LiveInventory from '../../components/LiveInventory';
+import GregInventoryCheck from '../../components/GregInventoryCheck';
 
 type UserGroup = 'line' | 'handler' | 'supervisor' | 'specialist' | 'shipping';
 type DemoUser = { name: string; role: string; username: string; group?: UserGroup };
 type PanelKey = 'requests' | 'inventory' | 'yard' | 'goals' | 'schedule' | null;
 type CardProps = { label:string; value:string; text:string; panel:Exclude<PanelKey,null>; onOpen:(panel:Exclude<PanelKey,null>)=>void };
-
 function ClickCard({label,value,text,panel,onOpen}:CardProps){return <button className="metricCard metricCardButton" type="button" onClick={()=>onOpen(panel)}><span>{label}</span><strong>{value}</strong><p>{text}</p><small className="cardAction">Open →</small></button>}
 function inferGroup(user:DemoUser):UserGroup{if(user.group)return user.group;if(user.username.startsWith('line'))return 'line';if(['greg','tristen'].includes(user.username))return 'handler';if(user.username==='jose')return 'specialist';if(user.username==='byrd')return 'shipping';return 'supervisor'}
 
@@ -36,7 +36,7 @@ export default function DashboardPage(){
  {isHandler&&<section className="dashboardGrid"><ClickCard label="Assigned Requests" value={isGreg?'Boom Queue':isTristen?'Hood Queue':'My Queue'} text="Accept assigned material requests and work them in priority order." panel="requests" onOpen={openPanel}/><ClickCard label="Part Checklist" value="Pick & Deliver" text="See parts, quantities, part numbers, and locations." panel="requests" onOpen={openPanel}/>{!isGreg&&<ClickCard label="Live Inventory" value={isTristen?'Hood Stock':'Parts & Stock'} text="Update incoming, outgoing, reserved, and on-hand material." panel="inventory" onOpen={openPanel}/>}<ClickCard label="Production Plan" value="Read Only" text="Review upcoming production demand." panel="schedule" onOpen={openPanel}/></section>}
  {isSpecialist&&<section className="dashboardGrid"><ClickCard label="Yard Boom Lifts" value="Reconditioning" text="See exact boom-lift backlog, completed green tags, and units waiting on material." panel="yard" onOpen={openPanel}/><ClickCard label="Production Goals" value="Live Progress" text="Track today’s green tag goal and units waiting on material." panel="goals" onOpen={openPanel}/><ClickCard label="Live Requests" value="Boom Support" text="Monitor boom delivery activity." panel="requests" onOpen={openPanel}/><ClickCard label="Live Inventory" value="Boom Stock" text="Maintain boom inventory, movement, locations, and shortages." panel="inventory" onOpen={openPanel}/></section>}
  {isShipping&&<section className="dashboardGrid"><ClickCard label="Incoming Models" value="Check In" text="Record models arriving for reconditioning and review units currently in the yard." panel="yard" onOpen={openPanel}/><ClickCard label="Completed Models" value="Check Out" text="Review completed units ready to be loaded onto flatbed trucks for shipment." panel="yard" onOpen={openPanel}/><ClickCard label="Production Schedule" value="Read Only" text="Review model, serial, job, status, and shipping readiness." panel="schedule" onOpen={openPanel}/></section>}</>}
- {canViewBoomPlan&&<BoomDeliveryPlan/>}{canViewGoals&&<ProductionGoals user={user}/>} {canViewYard&&<YardReconditioning user={user}/>} {!isShipping&&<div id="requests"><MaterialRequestFlow user={user}/></div>}{canViewParts&&<LiveInventory user={user}/>} {canViewParts&&<div id="parts"><ModelPartsSetup user={user}/></div>}
+ {canViewBoomPlan&&<BoomDeliveryPlan/>}{canViewGoals&&<ProductionGoals user={user}/>} {canViewYard&&<YardReconditioning user={user}/>} {!isShipping&&<div id="requests"><MaterialRequestFlow user={user}/></div>}{isGreg&&<GregInventoryCheck/>}{canViewParts&&<LiveInventory user={user}/>} {canViewParts&&<div id="parts"><ModelPartsSetup user={user}/></div>}
  {activePanel==='schedule'&&canViewSchedule&&<section id="dashboard-tool-panel" className="sectionBlock dashboardToolPanel"><div className="toolPanelHeader"><div><p className="eyebrow">Production</p><h2>Production Schedule</h2></div><button className="secondaryButton" onClick={()=>setActivePanel(null)}>Close</button></div><ProductionSchedule/><BoomDeliveryPlan/></section>}
  </main>;
 }
