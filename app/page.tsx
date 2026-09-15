@@ -45,7 +45,7 @@ export default function Home() {
       </section>
 
       <TeamMessageBoard />
-      <ProductionSchedule />
+      <ProductionSchedule publicView />
 
       <div className="demoAccessFooter">
         <strong>Demo usernames:</strong> leadership · supervisor · planner · boomspecialist · boomhandler · hoodhandler · line1–line4 &nbsp;|&nbsp; Password: <strong>12345</strong>
