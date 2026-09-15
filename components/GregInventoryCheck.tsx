@@ -3,76 +3,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-type InventoryItem = {
-  id:string;
-  material_type:string;
-  material_name:string;
-  part_number:string|null;
-  location:string;
-  on_hand:number;
-  reserved:number;
-  low_stock_threshold:number;
-};
+type InventoryItem={id:string;material_type:string;material_name:string;part_number:string|null;location:string;on_hand:number;reserved:number;low_stock_threshold:number};
+type DisplayItem={key:string;material_name:string;part_number:string|null;location:string|null;on_hand:number|null;low_stock_threshold:number|null;configured:boolean};
+
+const boomMaterials=['Base Boom','Inner Mid / Big Mid','Outer Mid / Small Mid','Fly Boom','Lower Push Tube','Upper Push Tube','Telescope Cylinder','Power Track T/T','Power Track Upper'];
+function norm(value:string){return value.toLowerCase().replace(/[^a-z0-9]/g,'')}
 
 export default function GregInventoryCheck(){
-  const [items,setItems]=useState<InventoryItem[]>([]);
-  const [loading,setLoading]=useState(true);
-  const [error,setError]=useState('');
-
-  async function load(){
-    const {data,error}=await supabase.from('inventory').select('id, material_type, material_name, part_number, location, on_hand, reserved, low_stock_threshold').eq('material_type','Boom').order('material_name');
-    setItems((data??[]) as InventoryItem[]);
-    setError(error?'Unable to load the inventory check.':'');
-    setLoading(false);
-  }
-
-  useEffect(()=>{
-    load();
-    const channel=supabase.channel('greg-inventory-check').on('postgres_changes',{event:'*',schema:'public',table:'inventory'},load).subscribe();
-    return()=>{supabase.removeChannel(channel)};
-  },[]);
-
-  const summary=useMemo(()=>({
-    items:items.length,
-    units:items.reduce((sum,item)=>sum+Math.max(0,item.on_hand),0),
-    low:items.filter(item=>item.on_hand>0&&item.on_hand<=item.low_stock_threshold).length,
-    out:items.filter(item=>item.on_hand<=0).length
-  }),[items]);
-
-  return <section className="sectionBlock" id="greg-inventory-check">
-    <div className="requestFlowHeader"><div>
-      <p className="eyebrow">Inventory Check</p>
-      <h2>Boom Material Stock</h2>
-      <p className="dashboardRole">Quick read-only view of what boom material is in stock and where to pick it up.</p>
-    </div></div>
-
-    <div className="dashboardGrid supervisorCoreGrid">
-      <article className="metricCard"><span>Materials</span><strong>{loading?'—':summary.items}</strong><p>Boom material records.</p></article>
-      <article className="metricCard"><span>Units In Stock</span><strong>{loading?'—':summary.units}</strong><p>Current on-hand units.</p></article>
-      <article className="metricCard"><span>Low Stock</span><strong>{loading?'—':summary.low}</strong><p>At or below stock threshold.</p></article>
-      <article className="metricCard"><span>Out of Stock</span><strong>{loading?'—':summary.out}</strong><p>No units currently on hand.</p></article>
-    </div>
-
-    {error&&<p className="requestMessage">{error}</p>}
-    <div className="modelPartsTableWrap" style={{marginTop:14}}>
-      <table className="modelPartsTable">
-        <thead><tr><th>Material</th><th>Part #</th><th>Location</th><th>In Stock</th><th>Status</th></tr></thead>
-        <tbody>
-          {loading?<tr><td colSpan={5}>Loading boom inventory...</td></tr>:items.length===0?<tr><td colSpan={5}>No boom inventory has been entered yet.</td></tr>:items.map(item=>{
-            const out=item.on_hand<=0;
-            const low=!out&&item.on_hand<=item.low_stock_threshold;
-            const status=out?'Out of Stock':low?'Low Stock':'In Stock';
-            return <tr key={item.id}>
-              <td><strong>{item.material_name}</strong></td>
-              <td>{item.part_number||'—'}</td>
-              <td><strong>{item.location||'—'}</strong></td>
-              <td><strong style={{fontSize:'1.15rem'}}>{item.on_hand}</strong></td>
-              <td><span className={`priorityBadge ${out?'priorityUrgent':''}`}>{status}</span></td>
-            </tr>;
-          })}
-        </tbody>
-      </table>
-    </div>
-    <p className="scheduleFootnote">Read only for Greg. Stock counts and locations update from LineFlow inventory data.</p>
-  </section>;
+ const[items,setItems]=useState<InventoryItem[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
+ async function load(){const{data,error}=await supabase.from('inventory').select('id, material_type, material_name, part_number, location, on_hand, reserved, low_stock_threshold').eq('material_type','Boom').order('material_name');setItems((data??[])as InventoryItem[]);setError(error?'Unable to load the inventory check.':'');setLoading(false)}
+ useEffect(()=>{load();const channel=supabase.channel('greg-inventory-check').on('postgres_changes',{event:'*',schema:'public',table:'inventory'},load).subscribe();return()=>{supabase.removeChannel(channel)}},[]);
+ const display=useMemo<DisplayItem[]>(()=>{const rows:DisplayItem[]=[];for(const name of boomMaterials){const matches=items.filter(item=>norm(item.material_name)===norm(name));if(matches.length){for(const item of matches)rows.push({key:item.id,material_name:item.material_name,part_number:item.part_number,location:item.location,on_hand:item.on_hand,low_stock_threshold:item.low_stock_threshold,configured:true})}else rows.push({key:`template-${norm(name)}`,material_name:name,part_number:null,location:null,on_hand:null,low_stock_threshold:null,configured:false})}for(const item of items){if(!boomMaterials.some(name=>norm(name)===norm(item.material_name)))rows.push({key:item.id,material_name:item.material_name,part_number:item.part_number,location:item.location,on_hand:item.on_hand,low_stock_threshold:item.low_stock_threshold,configured:true})}return rows},[items]);
+ const summary=useMemo(()=>({materials:display.length,units:items.reduce((sum,item)=>sum+Math.max(0,item.on_hand),0),low:items.filter(item=>item.on_hand>0&&item.on_hand<=item.low_stock_threshold).length,out:items.filter(item=>item.on_hand<=0).length}),[display,items]);
+ return <section className="sectionBlock" id="greg-inventory-check"><div className="requestFlowHeader"><div><p className="eyebrow">Inventory Check</p><h2>All Boom Material Stock</h2><p className="dashboardRole">Quick read-only visual of boom material names, verified part numbers, pickup locations, and current stock.</p></div></div>
+ <div className="dashboardGrid supervisorCoreGrid"><article className="metricCard"><span>Materials</span><strong>{loading?'—':summary.materials}</strong><p>Boom material categories shown.</p></article><article className="metricCard"><span>Units In Stock</span><strong>{loading?'—':summary.units}</strong><p>Current entered on-hand units.</p></article><article className="metricCard"><span>Low Stock</span><strong>{loading?'—':summary.low}</strong><p>Entered items at or below threshold.</p></article><article className="metricCard"><span>Out of Stock</span><strong>{loading?'—':summary.out}</strong><p>Entered items with zero on hand.</p></article></div>
+ {error&&<p className="requestMessage">{error}</p>}
+ <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:10,marginTop:14}}>{loading?<p>Loading boom inventory...</p>:display.map(item=>{const out=item.configured&&item.on_hand!==null&&item.on_hand<=0,low=item.configured&&!out&&item.on_hand!==null&&item.low_stock_threshold!==null&&item.on_hand<=item.low_stock_threshold,status=!item.configured?'Awaiting Inventory Data':out?'Out of Stock':low?'Low Stock':'In Stock';return <article className="metricCard" key={item.key} style={{minHeight:170}}><span>{item.material_name}</span><strong style={{fontSize:'1.55rem'}}>{item.on_hand===null?'—':item.on_hand}</strong><p><b>Part #:</b> {item.part_number||'Not entered'}</p><p><b>Location:</b> {item.location||'Not entered'}</p><small className={`priorityBadge ${out?'priorityUrgent':''}`}>{status}</small></article>})}</div>
+ <p className="scheduleFootnote">All standard boom material categories stay visible even before inventory is entered. Unknown part numbers, locations, and quantities remain blank instead of using unverified data. Additional Boom inventory records also appear automatically.</p></section>;
 }
