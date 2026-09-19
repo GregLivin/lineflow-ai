@@ -13,6 +13,8 @@ type ModelPart = {
   part_number: string | null;
   quantity: number;
   location: string | null;
+  color: string | null;
+  power_track: string | null;
   active: boolean;
 };
 
@@ -29,6 +31,8 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
   const [partNumber, setPartNumber] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [location, setLocation] = useState('');
+  const [color, setColor] = useState('');
+  const [powerTrack, setPowerTrack] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -38,7 +42,7 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
   async function loadParts() {
     let query = supabase
       .from('model_parts')
-      .select('id, model, material_type, part_name, part_number, quantity, location, active')
+      .select('id, model, material_type, part_name, part_number, quantity, location, color, power_track, active')
       .order('model')
       .order('part_name');
 
@@ -86,6 +90,8 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
       part_number: partNumber.trim() || null,
       quantity,
       location: location.trim() || null,
+      color: color.trim() || null,
+      power_track: powerTrack.trim() || null,
       active: true,
     });
 
@@ -100,6 +106,8 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
     setPartNumber('');
     setQuantity(1);
     setLocation('');
+    setColor('');
+    setPowerTrack('');
     setMessage(`${partName.trim()} added to ${model}.`);
     await loadParts();
   }
@@ -122,6 +130,8 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
         part_number: part.part_number?.trim() || null,
         quantity: Math.max(1, Number(part.quantity) || 1),
         location: part.location?.trim() || null,
+        color: part.color?.trim() || null,
+        power_track: part.power_track?.trim() || null,
         active: part.active,
       })
       .eq('id', part.id);
@@ -184,13 +194,15 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
               <th>Part Number</th>
               <th>Qty / Machine</th>
               <th>Location</th>
+              <th>Color</th>
+              <th>Power Track</th>
               <th>Active</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6}>Loading model parts...</td></tr>
+              <tr><td colSpan={8}>Loading model parts...</td></tr>
             ) : visibleParts.length === 0 ? (
               <tr><td colSpan={6}>No {materialType.toLowerCase()} parts configured for {selectedModel} yet.</td></tr>
             ) : visibleParts.map(part => (
@@ -199,6 +211,8 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
                 <td><input value={part.part_number ?? ''} onChange={e => updateLocal(part.id, 'part_number', e.target.value)} placeholder="Part number" /></td>
                 <td><input type="number" min="1" value={part.quantity} onChange={e => updateLocal(part.id, 'quantity', Math.max(1, Number(e.target.value) || 1))} /></td>
                 <td><input list="lineflow-location-options" value={part.location ?? ''} onChange={e => updateLocal(part.id, 'location', e.target.value)} placeholder="Storage location" /></td>
+                <td><input value={part.color ?? ''} onChange={e => updateLocal(part.id, 'color', e.target.value)} placeholder="Color" /></td>
+                <td><input value={part.power_track ?? ''} onChange={e => updateLocal(part.id, 'power_track', e.target.value)} placeholder="Power track" /></td>
                 <td><input type="checkbox" checked={part.active} onChange={e => updateLocal(part.id, 'active', e.target.checked)} /></td>
                 <td className="modelPartActions">
                   <button className="secondaryButton" onClick={() => savePart(part)} disabled={savingId === part.id}>{savingId === part.id ? 'Saving...' : 'Save'}</button>
@@ -222,6 +236,8 @@ export default function ModelPartsSetup({ user }: { user: DemoUser }) {
           <label>Part Number<input value={partNumber} onChange={e => setPartNumber(e.target.value)} placeholder="Part number" /></label>
           <label>Qty per Machine<input type="number" min="1" value={quantity} onChange={e => setQuantity(Math.max(1, Number(e.target.value) || 1))} /></label>
           <label>Location<input list="lineflow-location-options" value={location} onChange={e => setLocation(e.target.value)} placeholder="Storage location" /></label>
+          <label>Color<input value={color} onChange={e => setColor(e.target.value)} placeholder="Optional color" /></label>
+          <label>Power Track<input value={powerTrack} onChange={e => setPowerTrack(e.target.value)} placeholder="Optional power-track reference" /></label>
         </div>
         <button className="primaryButton" type="submit">{isTristen ? 'Add Hood Part to Model' : 'Add Part to Model'}</button>
       </form>
